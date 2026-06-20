@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Sertifikat - RuangHalal.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-[#E2F7E1] font-sans flex h-screen overflow-hidden text-gray-700">
+
+    <aside id="sidebar" class="w-64 bg-[#008D64] flex flex-col shadow-sm transition-all duration-300 ease-in-out" style="margin-left: -256px;">
+        <nav class="flex-1 px-4 py-8 space-y-1 text-sm font-medium">
+            <a href="/dashboard" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-house-chimney w-6"></i> Dashboard
+            </a>
+            <a href="/daftar-umkm" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-users w-6"></i> Daftar UMKM
+            </a>
+            <a href="/verifikasi-dokumen" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-clipboard-check w-6"></i> Verifikasi Dokumen
+            </a>
+            <a href="/validasi-pembayaran" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-invoice-dollar w-6"></i> Validasi Pembayaran
+            </a>
+            <a href="/upload-sertifikat" class="flex items-center p-3 text-[#008D64] bg-white rounded-lg font-bold shadow-sm">
+                <i class="fa-solid fa-file-arrow-up w-6 text-[#008D64]"></i> Upload Sertifikat
+            </a>
+            <a href="/status-sertifikasi" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-certificate w-6"></i> Status Sertifikasi
+            </a>
+            <a href="/laporan" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-lines w-6"></i> Laporan
+            </a>
+        </nav>
+
+        <!-- Tombol Keluar di Bawah Sidebar -->
+        <div class="p-4 border-t border-white/10 mt-auto">
+            <a href="/api/logout" class="w-full flex items-center justify-center p-3 text-rose-500 bg-white rounded-lg font-bold shadow-sm hover:bg-rose-50 transition cursor-pointer text-sm">
+                <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Keluar
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header class="h-16 bg-[#008D64] shadow-sm flex items-center justify-between px-8 shrink-0 z-10 relative">
+            <div class="flex items-center gap-4">
+                <button id="btnToggle" class="text-white/80 hover:text-white focus:outline-none transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+            <div><h1 class="text-xl font-bold text-white tracking-tight">RUANGHALAL.ID</h1></div>
+        </header>
+
+        <div class="p-8 overflow-y-auto h-full">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800">Upload Sertifikat Halal</h2>
+                <p class="text-sm text-gray-400 italic">Unggah dokumen sertifikat untuk UMKM yang telah lulus audit.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-[#008D64]/5 text-[10px] font-bold text-[#008D64] uppercase tracking-widest">
+                        <tr>
+                            <th class="px-8 py-4">ID UMKM</th>
+                            <th class="px-8 py-4">Nama Usaha</th>
+                            <th class="px-8 py-4 text-center">Status</th>
+                            <th class="px-8 py-4 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="uploadTableBody" class="divide-y divide-gray-50">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalUpload" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 w-[400px] shadow-2xl">
+            <h3 class="text-xl font-bold mb-2 text-gray-800">Upload Dokumen</h3>
+            <p id="namaUmkmUpload" class="text-xs text-[#008D64] font-bold mb-6 uppercase tracking-widest"></p>
+            
+            <div class="mb-6 w-full">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Pilih File Sertifikat</label>
+                
+                <label for="file_sertifikat" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl cursor-pointer border-[#008D64]/40 bg-[#008D64]/5 hover:bg-[#008D64]/10 transition-all duration-300">
+                    <div id="upload-content" class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                        <div class="p-3 bg-white rounded-full shadow-sm mb-3">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-[#008D64]"></i>
+                        </div>
+                        <p class="mb-1 text-sm text-gray-600 font-semibold"><span class="text-[#008D64] hover:underline">Klik untuk pilih file</span> atau drag & drop</p>
+                        <p class="text-[10px] text-[#008D64]/60 font-black tracking-widest uppercase mt-1">PDF, JPG, PNG</p>
+                    </div>
+                    <div id="file-info" class="hidden flex-col items-center justify-center w-full px-6 text-center">
+                        <i class="fa-solid fa-file-circle-check text-4xl text-[#008D64] mb-2"></i>
+                        <p id="file-name" class="text-sm font-bold text-gray-700 w-full truncate"></p>
+                        <p class="text-[10px] text-[#008D64] mt-1 font-black tracking-widest uppercase">File Siap Diunggah</p>
+                    </div>
+                    <input id="file_sertifikat" name="file_sertifikat" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" required />
+                </label>
+                <p class="text-[9px] text-gray-400 mt-2 italic text-center">*Jika mengunggah ulang, file lama akan otomatis tergantikan.</p>
+            </div>
+
+            <div class="flex flex-col gap-3 mt-6">
+                <button onclick="prosesUpload()" class="w-full py-3 bg-[#008D64] text-white rounded-xl font-bold uppercase text-[10px] shadow-lg shadow-green-100 hover:bg-[#007A57] transition">Upload & Terbitkan</button>
+                <button onclick="toggleModalUpload()" class="w-full py-3 border border-gray-100 rounded-xl font-bold text-gray-400 uppercase text-[10px] hover:bg-gray-50 transition">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedID = '';
+        async function fetchSiapUpload() {
+            try {
+                const res = await fetch('http://localhost:5000/api/sertifikasi/list-upload');
+                const data = await res.json();
+                const tableBody = document.getElementById('uploadTableBody');
+                tableBody.innerHTML = '';
+
+                data.forEach(item => {
+                    let statusBadge = '';
+                    let actionBtn = '';
+
+                    if (item.status_sertifikasi === 'Sertifikat Terbit' || item.status_sertifikasi === 'Selesai') {
+                        statusBadge = `<span class="px-3 py-1 bg-green-50 text-green-600 rounded-full text-[9px] font-black uppercase tracking-wider"><i class="fa-solid fa-check mr-1"></i> Sudah Terbit</span>`;
+                        actionBtn = `
+                            <div class="flex justify-end gap-2">
+                                <a href="http://localhost:5000/uploads/${item.file_sertifikat}" target="_blank" class="text-blue-600 font-black text-[10px] uppercase hover:underline tracking-widest bg-blue-50 px-3 py-2 rounded-lg shadow-sm border border-blue-100"><i class="fa-solid fa-eye mr-1"></i> Lihat</a>
+                                <button onclick="toggleModalUpload('${item.id_umkm}', '${item.nama_usaha}')" class="text-amber-600 font-black text-[10px] uppercase hover:underline tracking-widest bg-amber-50 px-3 py-2 rounded-lg shadow-sm border border-amber-100"><i class="fa-solid fa-pen-to-square mr-1"></i> Ubah</button>
+                            </div>
+                        `;
+                    } else if (item.status_sertifikasi === 'Terverifikasi' || item.status_sertifikasi === 'Audit Lapangan') {
+                        statusBadge = `<span class="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-wider">Tahap Audit Lapangan</span>`;
+                        actionBtn = `<button onclick="toggleModalUpload('${item.id_umkm}', '${item.nama_usaha}')" class="text-[#008D64] font-black text-[10px] uppercase hover:underline tracking-widest bg-green-50 px-4 py-2 rounded-lg shadow-sm border border-green-100"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Upload</button>`;
+                    } else {
+                        statusBadge = `<span class="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-[9px] font-black uppercase tracking-wider">${item.status_sertifikasi}</span>`;
+                        actionBtn = `-`;
+                    }
+
+                    tableBody.innerHTML += `
+                        <tr class="hover:bg-gray-50/50 transition">
+                            <td class="px-8 py-5 text-xs font-bold text-blue-600">#${item.id_umkm}</td>
+                            <td class="px-8 py-5 text-sm font-bold text-black">${item.nama_usaha}</td>
+                            <td class="px-8 py-5 text-center">${statusBadge}</td>
+                            <td class="px-8 py-5 text-right">${actionBtn}</td>
+                        </tr>`;
+                });
+            } catch (err) { console.error("Gagal muat data upload:", err); }
+        }
+
+        function toggleModalUpload(id = '', nama = '') {
+            if (id) selectedID = id;
+            if (nama) document.getElementById('namaUmkmUpload').innerText = nama;
+            document.getElementById('file_sertifikat').value = '';
+            
+            // Reset tampilan upload kembali ke bentuk awal saat modal ditutup/dibuka
+            const uploadContent = document.getElementById('upload-content');
+            const fileInfo = document.getElementById('file-info');
+            if(uploadContent && fileInfo) {
+                uploadContent.classList.remove('hidden');
+                fileInfo.classList.add('hidden');
+                fileInfo.classList.remove('flex');
+            }
+
+            document.getElementById('modalUpload').classList.toggle('hidden');
+        }
+
+        async function prosesUpload() {
+            const fileInput = document.getElementById('file_sertifikat');
+            if (!fileInput || fileInput.files.length === 0) return alert("Pilih file sertifikat terlebih dahulu!");
+            
+            const formData = new FormData();
+            formData.append('id', selectedID);
+            formData.append('file_sertifikat', fileInput.files[0]);
+
+            try {
+                const res = await fetch('http://localhost:5000/api/sertifikasi/upload-sertifikat', { method: 'POST', body: formData });
+                const hasil = await res.json();
+                if (hasil.status === 'sukses') {
+                    alert("Berhasil! Sertifikat telah diunggah dan otomatis terbit.");
+                    toggleModalUpload();
+                    fetchSiapUpload();
+                } else { alert("Gagal upload: " + hasil.pesan); }
+            } catch (err) { alert("Server bermasalah, cek terminal!"); }
+        }
+
+        // Menangani perubahan tampilan kotak saat file dipilih
+        const fileInputSertifikat = document.getElementById('file_sertifikat');
+        if (fileInputSertifikat) {
+            fileInputSertifikat.addEventListener('change', function() {
+                const uploadContent = document.getElementById('upload-content');
+                const fileInfo = document.getElementById('file-info');
+                const fileNameDisplay = document.getElementById('file-name');
+                
+                if (this.files && this.files.length > 0) {
+                    uploadContent.classList.add('hidden');
+                    fileInfo.classList.remove('hidden');
+                    fileInfo.classList.add('flex');
+                    fileNameDisplay.textContent = this.files[0].name;
+                }
+            });
+        }
+
+        window.onload = fetchSiapUpload;
+    </script>
+<script>
+    // --- LOGIKA TOGGLE MENU ---
+    const btnToggle = document.getElementById('btnToggle');
+    const sidebar = document.getElementById('sidebar');
+    btnToggle.addEventListener('click', () => {
+        sidebar.style.marginLeft = sidebar.style.marginLeft === '-256px' ? '0px' : '-256px';
+    });
+</script>
+</body>
+</html>

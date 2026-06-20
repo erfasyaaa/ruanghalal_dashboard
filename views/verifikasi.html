@@ -1,0 +1,366 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi Dokumen - RuangHalal.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-[#E2F7E1] font-sans flex h-screen overflow-hidden text-gray-700">
+
+    <aside id="sidebar" class="w-64 bg-[#008D64] flex flex-col shadow-sm shrink-0 transition-all duration-300 ease-in-out" style="margin-left: -256px;">
+        <nav class="flex-1 px-4 py-8 space-y-1 text-sm font-medium">
+            <a href="/dashboard" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-house-chimney w-6"></i> Dashboard
+            </a>
+            <a href="/daftar-umkm" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-users w-6"></i> Daftar UMKM
+            </a>
+            <a href="/verifikasi-dokumen" class="flex items-center p-3 text-[#008D64] bg-white rounded-lg font-bold shadow-sm">
+                <i class="fa-solid fa-clipboard-check w-6 text-[#008D64]"></i> Verifikasi Dokumen
+            </a>
+            <a href="/validasi-pembayaran" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-invoice-dollar w-6"></i> Validasi Pembayaran
+            </a>
+            <a href="/upload-sertifikat" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-arrow-up w-6"></i> Upload Sertifikat
+            </a>
+            <a href="/status-sertifikasi" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-certificate w-6"></i> Status Sertifikasi
+            </a>
+            <a href="/laporan" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-lines w-6"></i> Laporan
+            </a>
+            
+        </nav>
+
+        <!-- Tombol Keluar di Bawah Sidebar -->
+        <div class="p-4 border-t border-white/10 mt-auto">
+            <a href="/api/logout" class="w-full flex items-center justify-center p-3 text-rose-500 bg-white rounded-lg font-bold shadow-sm hover:bg-rose-50 transition cursor-pointer text-sm">
+                <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Keluar
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        
+        <div id="listSection" class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-[#008D64] shadow-sm flex items-center justify-between px-8 shrink-0 z-10 relative">
+                <div class="flex items-center gap-4">
+                    <button id="btnToggle" class="text-white/80 hover:text-white focus:outline-none transition">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+                <div><h1 class="text-xl font-bold text-white tracking-tight">RUANGHALAL.ID</h1></div>
+            </header>
+            <div class="p-8 overflow-y-auto">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800">Dokumen Siap Periksa</h2>
+                    <p class="text-sm text-gray-400 italic">Daftar UMKM yang sudah divalidasi pembayarannya.</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-[#008D64]/5 text-[10px] font-bold text-[#008D64] uppercase tracking-widest">
+                            <tr>
+                                <th class="px-6 py-4">ID UMKM</th>
+                                <th class="px-6 py-4">Nama Usaha</th>
+                                <th class="px-6 py-4">Kategori</th>
+                                <th class="px-6 py-4">Status Dokumen</th>
+                                <th class="px-6 py-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verifTableBody" class="text-sm divide-y divide-gray-50 font-medium text-gray-600">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="detailSection" class="hidden flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-[#008D64] shadow-sm flex items-center justify-between px-8 shrink-0 z-10 relative">
+                <button onclick="kembaliKeList()" class="text-xs font-bold text-white/80 hover:text-white transition uppercase tracking-widest">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Kembali ke Daftar
+                </button>
+                <h1 class="text-xl font-bold text-white tracking-tight">RUANGHALAL.ID</h1>
+            </header>
+
+            <div class="p-8 overflow-y-auto w-full">
+                <!-- Info UMKM -->
+                <div class="mb-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+                    <div>
+                        <span id="labelID" class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold uppercase tracking-tighter">ID: -</span>
+                        <h2 id="detailUsaha" class="text-2xl font-bold text-black mt-2">Nama Usaha</h2>
+                        <p id="detailPemilik" class="text-sm text-black italic">Nama Pemilik</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Status Final (Otomatis)</p>
+                        <span id="finalBadge" class="text-lg font-black text-gray-300">MENUNGGU</span>
+                    </div>
+                </div>
+
+                <!-- Checklist Horizontal -->
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] block mb-4">Pemeriksaan Berkas (Ceklis Horizontal)</label>
+                <div class="grid grid-cols-3 gap-6 mb-8">
+                    <!-- Card NIB -->
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col gap-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-black">1. Dokumen NIB</p>
+                                <span id="badge_nib" class="text-[10px] font-black uppercase text-gray-400">MENUNGGU</span>
+                            </div>
+                            <button onclick="togglePreview('nib')" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-bold hover:bg-gray-200 transition">
+                                <i class="fa-solid fa-eye mr-1"></i> View
+                            </button>
+                        </div>
+                        <input type="text" id="catatan_nib" placeholder="Catatan/Revisi NIB..." class="w-full p-3 bg-gray-50 border border-gray-100 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#008D64]">
+                        <div class="flex gap-2 mt-auto">
+                            <button onclick="updateStatusBerkas('nib', 'Tolak')" class="flex-1 py-2 bg-white text-rose-500 rounded-lg text-[10px] font-bold hover:bg-rose-500 hover:text-white transition border border-rose-200 shadow-sm">TOLAK</button>
+                            <button onclick="updateStatusBerkas('nib', 'Lengkap')" class="flex-1 py-2 bg-white text-emerald-500 rounded-lg text-[10px] font-bold hover:bg-emerald-500 hover:text-white transition border border-emerald-200 shadow-sm">LENGKAP</button>
+                        </div>
+                    </div>
+
+                    <!-- Card SJPH -->
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col gap-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-black">2. Dokumen SJPH</p>
+                                <span id="badge_sjph" class="text-[10px] font-black uppercase text-gray-400">MENUNGGU</span>
+                            </div>
+                            <button onclick="togglePreview('sjph')" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-bold hover:bg-gray-200 transition">
+                                <i class="fa-solid fa-eye mr-1"></i> View
+                            </button>
+                        </div>
+                        <input type="text" id="catatan_sjph" placeholder="Catatan/Revisi SJPH..." class="w-full p-3 bg-gray-50 border border-gray-100 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#008D64]">
+                        <div class="flex gap-2 mt-auto">
+                            <button onclick="updateStatusBerkas('sjph', 'Tolak')" class="flex-1 py-2 bg-white text-rose-500 rounded-lg text-[10px] font-bold hover:bg-rose-500 hover:text-white transition border border-rose-200 shadow-sm">TOLAK</button>
+                            <button onclick="updateStatusBerkas('sjph', 'Lengkap')" class="flex-1 py-2 bg-white text-emerald-500 rounded-lg text-[10px] font-bold hover:bg-emerald-500 hover:text-white transition border border-emerald-200 shadow-sm">LENGKAP</button>
+                        </div>
+                    </div>
+
+                    <!-- Card Manual -->
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col gap-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-black">3. Manual Mutu</p>
+                                <span id="badge_manual" class="text-[10px] font-black uppercase text-gray-400">MENUNGGU</span>
+                            </div>
+                            <button onclick="togglePreview('manual')" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-bold hover:bg-gray-200 transition">
+                                <i class="fa-solid fa-eye mr-1"></i> View
+                            </button>
+                        </div>
+                        <input type="text" id="catatan_manual" placeholder="Catatan/Revisi Manual..." class="w-full p-3 bg-gray-50 border border-gray-100 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#008D64]">
+                        <div class="flex gap-2 mt-auto">
+                            <button onclick="updateStatusBerkas('manual', 'Tolak')" class="flex-1 py-2 bg-white text-rose-500 rounded-lg text-[10px] font-bold hover:bg-rose-500 hover:text-white transition border border-rose-200 shadow-sm">TOLAK</button>
+                            <button onclick="updateStatusBerkas('manual', 'Lengkap')" class="flex-1 py-2 bg-white text-emerald-500 rounded-lg text-[10px] font-bold hover:bg-emerald-500 hover:text-white transition border border-emerald-200 shadow-sm">LENGKAP</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Dokumen (Hidden default) -->
+                <div id="previewContainer" class="hidden mb-8 bg-gray-100 p-6 rounded-2xl border border-gray-200 shadow-inner">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-sm font-bold text-gray-600 uppercase tracking-widest">Pratinjau Dokumen: <span id="previewTitle" class="text-blue-600">-</span></h4>
+                        <button onclick="closePreview()" class="text-gray-400 hover:text-rose-500 transition-colors"><i class="fa-solid fa-times text-2xl"></i></button>
+                    </div>
+                    <div id="pdfViewer" class="w-full h-[500px] bg-white rounded-xl shadow flex items-center justify-center overflow-hidden">
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-6">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] block mb-2">Catatan Kesimpulan (Terisi Otomatis)</label>
+                    <textarea id="catatanVerif" rows="3" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#008D64] text-gray-600" placeholder="Catatan akan otomatis dirangkum dari form di atas berdasarkan tiap berkas..." readonly></textarea>
+                </div>
+
+                <button onclick="konfirmasiFinal()" class="w-full py-4 bg-[#008D64] text-white rounded-xl text-[12px] font-black uppercase tracking-[0.2em] shadow-lg shadow-green-100 hover:bg-[#007A57] transition-all">
+                    Selesaikan Verifikasi
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentID = '';
+        let currentUMKMData = null;
+
+        // 1. Ambil List Antrean
+        async function fetchVerifList() {
+            try {
+                const res = await fetch('/api/verifikasi-list');
+                const data = await res.json();
+                const tableBody = document.getElementById('verifTableBody');
+                tableBody.innerHTML = '';
+
+                data.forEach(item => {
+                    const statusClass = item.status_dokumen === 'Lengkap' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600';
+                    tableBody.innerHTML += `
+                        <tr class="hover:bg-gray-50/50 transition">
+                            <td class="px-6 py-5 text-blue-600 font-bold">#${item.id_umkm}</td>
+                            <td class="px-6 py-5 text-black font-bold">${item.nama_usaha}</td>
+                            <td class="px-6 py-5 text-[10px] text-black uppercase font-bold">${item.kategori}</td>
+                            <td class="px-6 py-5">
+                                <span class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase ${statusClass}">${item.status_dokumen || 'Menunggu'}</span>
+                            </td>
+                            <td class="px-6 py-5 text-right">
+                                <button onclick="bukaDetailVerifikasi('${item.id_umkm}')" class="px-4 py-2 bg-[#008D64] text-white rounded-lg text-[10px] font-bold uppercase shadow-md hover:bg-[#007A57] transition">Periksa</button>
+                            </td>
+                        </tr>`;
+                });
+            } catch (err) { console.error("Gagal load antrean", err); }
+        }
+
+        // 2. Buka Detail & Pasang Data Asli
+        async function bukaDetailVerifikasi(id) {
+            currentID = id;
+            document.getElementById('listSection').classList.add('hidden');
+            document.getElementById('detailSection').classList.remove('hidden');
+
+            const res = await fetch(`/api/umkm/${id}`);
+            currentUMKMData = await res.json();
+
+            // Isi Data Teks
+            document.getElementById('labelID').innerText = "ID: " + currentUMKMData.id_umkm;
+            document.getElementById('detailUsaha').innerText = currentUMKMData.nama_usaha;
+            document.getElementById('detailPemilik').innerText = currentUMKMData.nama_pemilik || "Pemilik UMKM";
+            
+            ['nib','sjph','manual'].forEach(k => {
+                // Cek apakah UMKM ini sudah diverifikasi sebelumnya
+                if (currentUMKMData.status_dokumen === 'Lengkap') {
+                    document.getElementById(`badge_${k}`).innerText = 'LENGKAP';
+                    document.getElementById(`badge_${k}`).className = 'text-[10px] font-black uppercase text-emerald-600';
+                } else if (currentUMKMData.status_dokumen === 'Revisi') {
+                    document.getElementById(`badge_${k}`).innerText = 'TOLAK';
+                    document.getElementById(`badge_${k}`).className = 'text-[10px] font-black uppercase text-rose-600';
+                } else {
+                    document.getElementById(`badge_${k}`).innerText = 'MENUNGGU';
+                    document.getElementById(`badge_${k}`).className = 'text-[10px] font-black uppercase text-gray-400';
+                }
+                document.getElementById(`catatan_${k}`).value = '';
+                
+                // Trigger otomatisasi saat mengetik di form catatan per-dokumen
+                document.getElementById(`catatan_${k}`).oninput = cekOtomatisasi;
+            });
+            
+            closePreview();
+            cekOtomatisasi();
+
+            // Kembalikan catatan asli dari database (jika ada) setelah otomatisasi awal berjalan
+            if (currentUMKMData.catatan_verifikasi) {
+                document.getElementById('catatanVerif').value = currentUMKMData.catatan_verifikasi;
+                
+                // Sebar ulang catatan ke tiap form (agar Admin tahu bagian mana yang revisi)
+                const notes = currentUMKMData.catatan_verifikasi.split('\n');
+                notes.forEach(note => {
+                    if (note.startsWith('- NIB: ')) document.getElementById('catatan_nib').value = note.replace('- NIB: ', '');
+                    if (note.startsWith('- SJPH: ')) document.getElementById('catatan_sjph').value = note.replace('- SJPH: ', '');
+                    if (note.startsWith('- Manual Mutu: ')) document.getElementById('catatan_manual').value = note.replace('- Manual Mutu: ', '');
+                });
+            }
+        }
+
+        // 3. Toggle & Close Preview PDF
+        function togglePreview(jenis) {
+            document.getElementById('previewContainer').classList.remove('hidden');
+            document.getElementById('previewTitle').innerText = jenis.toUpperCase();
+            const pdfContainer = document.getElementById('pdfViewer');
+            
+            // Ambil nama file dari data UMKM berdasarkan jenis (file_nib, file_sjph, atau file_manual)
+            const filename = currentUMKMData[`file_${jenis}`];
+            if(filename) {
+                pdfContainer.innerHTML = `<embed src="/uploads/${filename}" type="application/pdf" width="100%" height="100%" class="rounded-xl" />`;
+            } else {
+                pdfContainer.innerHTML = `<div class="text-center"><i class="fa-solid fa-file-pdf text-6xl text-gray-200 mb-4"></i><p class="text-gray-400 text-sm italic mt-2">File ${jenis.toUpperCase()} Belum Diupload UMKM</p></div>`;
+            }
+        }
+        function closePreview() {
+            document.getElementById('previewContainer').classList.add('hidden');
+            document.getElementById('pdfViewer').innerHTML = '';
+        }
+
+        // 4. Update Status Per Berkas & Otomatisasi
+        function updateStatusBerkas(jenis, status) {
+            const badge = document.getElementById(`badge_${jenis}`);
+            badge.innerText = status.toUpperCase();
+            if(status === 'Lengkap') badge.className = "text-[10px] font-black uppercase text-emerald-600";
+            else badge.className = "text-[10px] font-black uppercase text-rose-600";
+            cekOtomatisasi();
+        }
+
+        function cekOtomatisasi() {
+            const sNIB = document.getElementById('badge_nib').innerText;
+            const sSJPH = document.getElementById('badge_sjph').innerText;
+            const sManual = document.getElementById('badge_manual').innerText;
+            
+            const finalBadge = document.getElementById('finalBadge');
+            
+            if(sNIB === 'MENUNGGU' || sSJPH === 'MENUNGGU' || sManual === 'MENUNGGU') {
+                finalBadge.innerText = 'PROSES...';
+                finalBadge.className = 'text-lg font-black text-amber-500';
+            } else if (sNIB === 'LENGKAP' && sSJPH === 'LENGKAP' && sManual === 'LENGKAP') {
+                finalBadge.innerText = 'LENGKAP / VALID';
+                finalBadge.className = 'text-lg font-black text-emerald-600';
+            } else {
+                finalBadge.innerText = 'REVISI';
+                finalBadge.className = 'text-lg font-black text-rose-600';
+            }
+
+            // Gabung otomatis catatan
+            let cat = [];
+            const cNIB = document.getElementById('catatan_nib').value;
+            const cSJPH = document.getElementById('catatan_sjph').value;
+            const cManual = document.getElementById('catatan_manual').value;
+            
+            if(cNIB) cat.push(`- NIB: ${cNIB}`);
+            if(cSJPH) cat.push(`- SJPH: ${cSJPH}`);
+            if(cManual) cat.push(`- Manual Mutu: ${cManual}`);
+            
+            document.getElementById('catatanVerif').value = cat.join('\\n');
+        }
+
+        // 5. Final Simpan (Tidak Perlu Override Status Manual)
+        async function konfirmasiFinal() {
+            const statusOtomatis = document.getElementById('finalBadge').innerText;
+            if (statusOtomatis === 'PROSES...') {
+                return alert("Peringatan! Harap periksa & tandai ketiga dokumen (LENGKAP/TOLAK) sebelum menyimpan.");
+            }
+
+            const finalStatus = (statusOtomatis === 'LENGKAP / VALID') ? 'Lengkap' : 'Revisi';
+            const statusSertif = (finalStatus === 'Lengkap') ? 'Terverifikasi' : 'Ditolak/Revisi';
+            const catatan = document.getElementById('catatanVerif').value;
+
+            try {
+                const res = await fetch('/api/verifikasi/simpan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        id: currentID, 
+                        status_dokumen: finalStatus, 
+                        catatan: catatan, 
+                        status_sertifikasi: statusSertif 
+                    })
+                });
+                if((await res.json()).status === 'sukses') {
+                    alert(`OTOMATISASI BERHASIL!\\nStatus UMKM disimpan sebagai: ${finalStatus}`);
+                    kembaliKeList();
+                }
+            } catch (err) { alert("Gagal simpan final!"); }
+        }
+
+        function kembaliKeList() {
+            document.getElementById('listSection').classList.remove('hidden');
+            document.getElementById('detailSection').classList.add('hidden');
+            fetchVerifList();
+        }
+
+        window.onload = fetchVerifList;
+    </script>
+<script>
+    // --- LOGIKA TOGGLE MENU ---
+    const btnToggle = document.getElementById('btnToggle');
+    const sidebar = document.getElementById('sidebar');
+    btnToggle.addEventListener('click', () => {
+        sidebar.style.marginLeft = sidebar.style.marginLeft === '-256px' ? '0px' : '-256px';
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar UMKM - RuangHalal.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-[#E2F7E1] font-sans flex h-screen overflow-hidden text-gray-700">
+
+    <aside id="sidebar" class="w-64 bg-[#008D64] flex flex-col shadow-sm shrink-0 transition-all duration-300 ease-in-out" style="margin-left: -256px;">
+<nav class="flex-1 px-4 py-8 space-y-1 text-sm font-medium">
+    <a href="/dashboard" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+        <i class="fa-solid fa-house-chimney w-6"></i> Dashboard
+    </a>
+    
+    <a href="/daftar-umkm" class="flex items-center p-3 text-[#008D64] bg-white rounded-lg font-bold shadow-sm">
+        <i class="fa-solid fa-users w-6 text-[#008D64]"></i> Daftar UMKM
+    </a>
+    
+    <a href="/verifikasi-dokumen" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+        <i class="fa-solid fa-clipboard-check w-6"></i> Verifikasi Dokumen
+    </a>
+    
+    <a href="/validasi-pembayaran" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+        <i class="fa-solid fa-file-invoice-dollar w-6"></i> Validasi Pembayaran
+    </a>
+    
+    <a href="/upload-sertifikat" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+        <i class="fa-solid fa-file-arrow-up w-6"></i> Upload Sertifikat
+    </a>
+    
+    <a href="/status-sertifikasi" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+        <i class="fa-solid fa-certificate w-6"></i> Status Sertifikasi
+    </a>
+    
+    <a href="/laporan" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+        <i class="fa-solid fa-file-lines w-6"></i> Laporan
+    </a>
+</nav>
+
+        <!-- Tombol Keluar di Bawah Sidebar -->
+        <div class="p-4 border-t border-white/10 mt-auto">
+            <a href="/api/logout" class="w-full flex items-center justify-center p-3 text-rose-500 bg-white rounded-lg font-bold shadow-sm hover:bg-rose-50 transition cursor-pointer text-sm">
+                <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Keluar
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header class="h-16 bg-[#008D64] shadow-sm flex items-center justify-between px-8 shrink-0 z-10 relative">
+            <div class="flex items-center gap-4">
+                <button id="btnToggle" title="Buka/Tutup Menu Sidebar" class="text-white/80 hover:text-white focus:outline-none transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+            <div><h1 class="text-xl font-bold text-white tracking-tight">RUANGHALAL.ID</h1></div>
+        </header>
+
+        <div class="p-8 overflow-y-auto">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Database Utama UMKM</h2>
+                    <p class="text-sm text-gray-400 italic">Kelola data seluruh unit usaha yang terdaftar</p>
+                </div>
+                <button onclick="openModalTambah()" class="px-6 py-3 bg-[#008D64] text-white rounded-xl text-xs font-bold hover:bg-[#007A57] shadow-lg shadow-green-100 transition-all uppercase tracking-widest transform hover:-translate-y-0.5">
+                    <i class="fa-solid fa-plus mr-2"></i> Tambah UMKM
+                </button>
+            </div>
+
+ <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <table class="w-full text-left">
+        <thead class="bg-[#008D64]/5 text-[10px] font-bold text-[#008D64] uppercase tracking-widest">
+            <tr>
+                <th class="px-6 py-4">ID UMKM</th>
+                <th class="px-6 py-4">Nama Usaha</th>
+                <th class="px-6 py-4">NIB</th>
+                <th class="px-6 py-4">Kategori</th>
+                <th class="px-6 py-4">Kontak</th> <th class="px-6 py-4">Alamat</th> <th class="px-6 py-4 text-right">Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="umkmTableBody" class="text-sm divide-y divide-gray-50 font-medium text-gray-600">
+            </tbody>
+    </table>
+</div>
+        </div>
+    </main>
+
+    <div id="modalTambah" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 w-[500px] shadow-2xl transform transition-all">
+            <h3 class="text-xl font-bold mb-6 text-gray-800">Tambah Data UMKM Baru</h3>
+            <form id="formUMKM" class="space-y-4">
+                <input type="text" id="id_u" placeholder="ID UMKM (Auto)" class="w-full p-4 bg-gray-100 border border-gray-200 rounded-xl outline-none text-gray-500 font-bold text-sm cursor-not-allowed" required readonly>
+                <input type="text" id="usaha" placeholder="Nama Usaha" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] focus:bg-white transition-all text-sm" required>
+                <input type="text" id="nib" placeholder="Nomor Induk Berusaha (NIB)" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] focus:bg-white transition-all text-sm" required>
+                
+                <select id="kat" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] focus:bg-white transition-all text-sm text-gray-600" required>
+                    <option value="" disabled selected>Pilih Kategori Usaha</option>
+                    <!-- Opsi akan diisi oleh JavaScript -->
+                </select>
+
+                <input type="email" id="email" placeholder="Email" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] focus:bg-white transition-all text-sm" required>
+                <input type="text" id="hp" placeholder="No HP/WhatsApp" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] focus:bg-white transition-all text-sm" required>
+                <textarea id="almt" placeholder="Alamat Lengkap" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] focus:bg-white transition-all text-sm"></textarea>
+                
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="toggleModal()" class="flex-1 py-4 border border-gray-200 rounded-xl font-bold text-gray-500 hover:bg-gray-50 transition-all text-xs tracking-widest">BATAL</button>
+                    <button type="submit" class="flex-1 py-4 bg-[#008D64] text-white rounded-xl font-bold hover:bg-[#007A57] shadow-lg shadow-green-100 transition-all text-xs tracking-widest">SIMPAN DATA</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let mode = 'tambah';
+        let nextUmkmId = 1;
+
+        function toggleModal() {
+            document.getElementById('modalTambah').classList.toggle('hidden');
+        }
+
+        function openModalTambah() {
+            mode = 'tambah';
+            document.getElementById('formUMKM').reset();
+            document.querySelector('#modalTambah h3').innerText = 'Tambah Data UMKM Baru';
+            
+            // Auto-Generate ID UMKM Berurutan
+            const paddedNum = nextUmkmId.toString().padStart(3, '0');
+            document.getElementById('id_u').value = `UMKM-${paddedNum}`;
+            
+            toggleModal();
+        }
+
+        async function fetchUMKM() {
+            try {
+                const res = await fetch('http://localhost:5000/api/umkm');
+                const data = await res.json();
+                const tableBody = document.getElementById('umkmTableBody');
+                tableBody.innerHTML = '';
+                
+                let highestId = 0;
+
+                data.forEach(item => {
+                    // Cari angka terbesar dari ID yang sudah ada di database
+                    const numMatch = String(item.id_umkm).match(/\d+/);
+                    if (numMatch) {
+                        const num = parseInt(numMatch[0], 10);
+                        if (num > highestId) highestId = num;
+                    }
+
+                    tableBody.innerHTML += `
+                        <tr class="hover:bg-gray-50/50 transition">
+                            <td class="px-6 py-5 text-blue-600 font-bold">#${item.id_umkm}</td>
+                            <td class="px-6 py-5 text-black font-bold">${item.nama_usaha}</td>
+                            <td class="px-6 py-5 text-[10px] text-black italic">${item.nib || '-'}</td>
+                            <td class="px-6 py-5">
+                                <span class="px-3 py-1 bg-[#008D64]/10 text-[#008D64] rounded-lg text-[10px] font-bold uppercase">${item.kategori || 'UMKM'}</span>
+                            </td>
+                            <td class="px-6 py-5">
+                                <p class="text-xs text-black">${item.email}</p>
+                                <p class="text-[10px] text-black">${item.no_hp}</p>
+                            </td>
+                            <td class="px-6 py-5 text-[10px] text-black max-w-xs truncate">${item.alamat}</td>
+                            <td class="px-6 py-5 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button onclick="editData('${item.id_umkm}')" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-100 transition shadow-sm border border-blue-100 whitespace-nowrap">
+                                        <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
+                                    </button>
+                                    <button onclick="hapusData('${item.id_umkm}')" class="px-3 py-2 bg-rose-50 text-rose-600 rounded-lg text-[10px] font-bold uppercase hover:bg-rose-100 transition shadow-sm border border-rose-100 whitespace-nowrap">
+                                        <i class="fa-solid fa-trash mr-1"></i> Hapus
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                });
+
+                // Set ID selanjutnya
+                nextUmkmId = highestId + 1;
+            } catch (err) {
+                console.error("Gagal muat data UMKM", err);
+            }
+        }
+        
+        async function fetchKategori() {
+            try {
+                const res = await fetch('http://localhost:5000/api/kategori');
+                const data = await res.json();
+                const selectKat = document.getElementById('kat');
+
+                if (res.ok && data && data.length > 0) {
+                    data.forEach(item => {
+                        selectKat.innerHTML += `<option value="${item.nama_kategori}">${item.nama_kategori}</option>`;
+                    });
+                } else {
+                    throw new Error('Kategori kosong atau API bermasalah');
+                }
+            } catch (err) {
+                console.error("Gagal memuat kategori dari API, menggunakan opsi fallback.", err);
+                const selectKat = document.getElementById('kat');
+                const defaultKategori = ["Makanan", "Minuman", "Bahan Baku", "Jasa Sembelihan", "Rumah Potong Hewan/Unggas", "Kosmetik", "Obat & Suplemen", "Barang Gunaan", "Jasa Logistik", "Lainnya"];
+                defaultKategori.forEach(kategori => {
+                    selectKat.innerHTML += `<option value="${kategori}">${kategori}</option>`;
+                });
+            }
+        }
+
+        async function editData(id) {
+            mode = 'edit';
+            const res = await fetch(`http://localhost:5000/api/umkm/${id}`);
+            const data = await res.json();
+            document.getElementById('id_u').value = data.id_umkm;
+            document.getElementById('id_u').readOnly = true;
+            document.getElementById('usaha').value = data.nama_usaha;
+            document.getElementById('nib').value = data.nib || '';
+            document.getElementById('kat').value = data.kategori || '';
+            document.getElementById('email').value = data.email;
+            document.getElementById('hp').value = data.no_hp;
+            document.getElementById('almt').value = data.alamat;
+
+            document.querySelector('#modalTambah h3').innerText = 'Ubah Data UMKM';
+            toggleModal();
+        }
+
+        async function hapusData(id) {
+            if(confirm('Yakin mau hapus data ini?')) {
+                try {
+                    const res = await fetch(`http://localhost:5000/api/hapus/${id}`, { method: 'DELETE' });
+                    const hasil = await res.json();
+                    if(hasil.status === "sukses") {
+                        alert("Data UMKM berhasil dihapus!");
+                        fetchUMKM();
+                    } else {
+                        alert("Gagal menghapus data: " + hasil.pesan);
+                    }
+                } catch (err) {
+                    alert("Server error saat mencoba menghapus data!");
+                }
+            }
+        }
+
+        document.getElementById('formUMKM').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('id_u').value,
+                usaha: document.getElementById('usaha').value,
+                nib: document.getElementById('nib').value,
+                kategori: document.getElementById('kat').value,
+                email: document.getElementById('email').value,
+                hp: document.getElementById('hp').value,
+                alamat: document.getElementById('almt').value
+            };
+
+            const url = mode === 'tambah' ? '/api/simpan' : '/api/update';
+
+            try {
+                const res = await fetch(`http://localhost:5000${url}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const hasil = await res.json();
+                if (hasil.status === "sukses") {
+                    alert(mode === 'tambah' ? "BERHASIL TAMBAH!" : "BERHASIL UBAH!");
+                    toggleModal();
+                    fetchUMKM();
+                } else {
+                    alert("Gagal: " + hasil.pesan);
+                }
+            } catch (err) {
+                alert("Server Error! Cek terminal VS Code lu.");
+            }
+        };
+
+        window.onload = () => {
+            fetchUMKM();
+            fetchKategori();
+        };
+    </script>
+    <script>
+        // --- LOGIKA TOGGLE MENU ---
+        const btnToggle = document.getElementById('btnToggle');
+        const sidebar = document.getElementById('sidebar');
+        if (btnToggle && sidebar) {
+            btnToggle.addEventListener('click', () => {
+                sidebar.style.marginLeft = sidebar.style.marginLeft === '-256px' ? '0px' : '-256px';
+            });
+        }
+    </script>
+</body>
+</html>

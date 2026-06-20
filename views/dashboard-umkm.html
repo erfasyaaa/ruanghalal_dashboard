@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard UMKM - RuangHalal.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-[#E2F7E1] font-sans h-screen flex flex-col text-gray-700">
+
+    <!-- Navbar -->
+    <header class="bg-[#008D64] py-4 px-8 flex justify-between items-center relative z-10 shadow-sm">
+        <h1 class="text-xl font-bold text-white tracking-tight">RUANGHALAL.ID <span class="text-sm text-white/80 font-medium">| Portal UMKM</span></h1>
+        <a href="/api/logout" class="px-5 py-2 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold hover:bg-rose-100 transition shadow-sm uppercase tracking-wider">
+            <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Keluar
+        </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8 flex justify-center">
+        <div class="max-w-2xl w-full">
+            
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Halo, <span id="welcomeName" class="text-[#008D64]">Pengusaha</span>! 👋</h2>
+            
+            <div id="multiUmkmSelector" class="hidden flex justify-between items-center bg-white p-5 rounded-3xl border border-gray-100 shadow-sm mb-6">
+                <div class="flex items-center gap-3 w-full max-w-sm">
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Pilih Usaha:</span>
+                    <select id="selectMyUmkm" onchange="switchUmkm(this.value)" class="w-full p-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#008D64] text-sm font-bold text-[#008D64] cursor-pointer"></select>
+                </div>
+                <button onclick="bukaModalDaftar()" class="px-5 py-2.5 bg-[#008D64] text-white rounded-lg text-xs font-bold hover:bg-[#007A57] shadow transition transform hover:-translate-y-0.5"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
+            </div>
+
+            <!-- Belum Ada Data -->
+            <div id="noDataContainer" class="hidden bg-white p-10 rounded-3xl border border-gray-100 shadow-sm text-center mt-6">
+                <i class="fa-solid fa-shop text-6xl text-gray-300 mb-6"></i>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Belum Ada Usaha Terdaftar</h2>
+                <p class="text-sm text-gray-500 mb-8">Anda belum mendaftarkan unit usaha untuk sertifikasi halal. Daftarkan sekarang dan mulai proses sertifikasi Anda.</p>
+                <button onclick="bukaModalDaftar()" class="px-8 py-4 bg-[#008D64] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-green-100 hover:bg-[#007A57] transition-all transform hover:-translate-y-1">
+                    <i class="fa-solid fa-plus mr-2"></i> Daftar Sertifikasi Sekarang
+                </button>
+            </div>
+
+            <!-- Ada Data -->
+            <div id="dataContainer" class="hidden bg-white p-8 rounded-3xl border border-gray-100 shadow-sm mt-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-[#008D64]"></div>
+                <div class="mb-8 border-b border-gray-100 pb-6 text-center">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-1 block">Status Sertifikasi Usaha</span>
+                    <h2 id="u_nama_usaha" class="text-3xl font-black text-gray-800 uppercase">Memuat...</h2>
+                    <p id="u_id" class="text-sm text-[#008D64] font-medium mt-1">ID: -</p>
+                </div>
+
+                <div class="mb-8">
+                    <div class="flex justify-between text-xs font-bold mb-2">
+                        <span class="text-gray-500">Progres Tahapan</span>
+                        <span id="u_persen" class="text-[#008D64]">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                        <div id="u_bar" class="bg-[#008D64] h-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                    <p id="u_tahap" class="text-center text-[10px] uppercase font-black tracking-widest text-gray-400 mt-4">-</p>
+                </div>
+
+                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 mb-2 text-center">
+                    <h4 class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">Catatan / Status Akhir</h4>
+                    <p id="u_catatan" class="text-sm text-gray-800 font-medium">Sedang diproses oleh Admin.</p>
+                </div>
+                
+                <!-- Kontainer Aksi (Tombol Upload Pembayaran) -->
+                <div id="actionContainer" class="text-center mb-6"></div>
+
+                <!-- Container Sertifikat -->
+                <div id="sertifikatContainer" class="hidden mt-8 text-center border-t border-gray-100 pt-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full mb-4">
+                        <i class="fa-solid fa-award text-3xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-1">Selamat! Sertifikat Telah Terbit</h3>
+                    <p class="text-xs text-gray-500 mb-6">Usaha Anda telah resmi lolos Audit dan tersertifikasi Halal.</p>
+                    <a id="btnDownload" href="#" target="_blank" class="inline-block w-full py-4 bg-[#008D64] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-green-100 hover:bg-[#007A57] transition-all">
+                        <i class="fa-solid fa-cloud-arrow-down mr-2"></i> Unduh Sertifikat
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal Daftar Usaha -->
+    <div id="modalDaftar" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-black mb-1 text-gray-800">Form Pendaftaran Sertifikasi</h3>
+            <p class="text-xs text-gray-500 mb-6">Lengkapi data unit usaha dan unggah dokumen NIB.</p>
+            <form id="formDaftar" class="space-y-4">
+                <input type="text" id="usaha" placeholder="Nama Usaha (Contoh: Roti Bakar Budi)" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] transition-all text-sm font-medium" required>
+                <input type="text" id="nib" placeholder="Nomor Induk Berusaha (NIB)" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] transition-all text-sm font-medium" required>
+                
+                <select id="kat" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] transition-all text-sm font-medium text-gray-600 appearance-none" required>
+                    <option value="" disabled selected>Pilih Kategori Usaha</option>
+                </select>
+
+                <input type="text" id="hp" placeholder="No HP/WhatsApp Aktif" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] transition-all text-sm font-medium" required>
+                <textarea id="almt" placeholder="Alamat Lengkap Usaha" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#008D64] transition-all text-sm font-medium" rows="3" required></textarea>
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Upload Dokumen NIB (PDF/Gambar)</label>
+                    <input type="file" id="file_nib" accept=".pdf, image/*" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#008D64]/10 file:text-[#008D64] hover:file:bg-[#008D64]/20 transition-all" required>
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="tutupModalDaftar()" class="flex-1 py-4 border border-gray-200 rounded-xl font-bold text-gray-500 hover:bg-gray-50 transition-all text-xs tracking-widest uppercase">Batal</button>
+                    <button type="submit" class="flex-1 py-4 bg-[#008D64] text-white rounded-xl font-black hover:bg-[#007A57] shadow-lg shadow-green-100 transition-all text-xs tracking-widest uppercase">Kirim Form</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Upload Pembayaran -->
+    <div id="modalBayar" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h3 class="text-xl font-black mb-1 text-gray-800">Upload Bukti Pembayaran</h3>
+            <p class="text-xs text-gray-500 mb-6">Unggah bukti transfer agar admin dapat memvalidasi pendaftaran Anda.</p>
+            <form id="formBayar" class="space-y-4">
+                <input type="number" id="jml_bayar" placeholder="Jumlah Nominal Transfer (Misal: 300000)" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 transition-all text-sm font-medium" required>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Tanggal Transfer</label>
+                    <input type="date" id="tgl_bayar" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 transition-all text-sm font-medium text-gray-600" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Foto Bukti Transfer (JPG/PNG)</label>
+                    <input type="file" id="bukti_bayar" accept="image/*" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-100 file:text-amber-600 hover:file:bg-amber-200 transition-all" required>
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="tutupModalBayar()" class="flex-1 py-4 border border-gray-200 rounded-xl font-bold text-gray-500 hover:bg-gray-50 transition-all text-xs tracking-widest uppercase">Batal</button>
+                    <button type="submit" class="flex-1 py-4 bg-amber-500 text-white rounded-xl font-black hover:bg-amber-600 shadow-lg shadow-amber-200 transition-all text-xs tracking-widest uppercase">Upload Bukti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUserEmail = '';
+        let currentIdUmkm = '';
+
+        async function loadMyUMKM() {
+            try {
+                // 1. Ambil info user yang sedang login
+                const resUser = await fetch('/api/user-aktif');
+                if(resUser.status === 401) return window.location.href = '/';
+                const user = await resUser.json();
+                currentUserEmail = user.email;
+                document.getElementById('welcomeName').innerText = user.nama_lengkap;
+
+                // 2. Ambil data UMKM miliknya
+                const res = await fetch('/api/my-umkm');
+                const dataArray = await res.json();
+                
+                if (!dataArray || dataArray.length === 0) {
+                    document.getElementById('noDataContainer').classList.remove('hidden');
+                    document.getElementById('dataContainer').classList.add('hidden');
+                    const selector = document.getElementById('multiUmkmSelector');
+                    if(selector) selector.classList.add('hidden');
+                    fetchKategori(); // Siapkan pilihan kategori kalau dia mau daftar
+                } else {
+                    myUmkms = dataArray;
+                    document.getElementById('noDataContainer').classList.add('hidden');
+                    document.getElementById('dataContainer').classList.remove('hidden');
+                    
+                    const selector = document.getElementById('multiUmkmSelector');
+                    if(selector) selector.classList.remove('hidden');
+
+                    const selectEl = document.getElementById('selectMyUmkm');
+                    if(selectEl) {
+                        selectEl.innerHTML = '';
+                        myUmkms.forEach(u => {
+                            selectEl.innerHTML += `<option value="${u.id_umkm}">${u.nama_usaha} (${u.id_umkm})</option>`;
+                        });
+                        if(currentIdUmkm && myUmkms.find(u => u.id_umkm === currentIdUmkm)) {
+                            selectEl.value = currentIdUmkm;
+                        } else {
+                            currentIdUmkm = myUmkms[0].id_umkm;
+                        }
+                    }
+                    fetchKategori();
+                    renderUmkmData(currentIdUmkm);
+                }
+            } catch (err) { console.error("Error memuat data"); }
+        }
+
+        function switchUmkm(id) {
+            currentIdUmkm = id;
+            renderUmkmData(id);
+        }
+
+        function renderUmkmData(id) {
+            const data = myUmkms.find(u => u.id_umkm === id);
+            if(!data) return;
+
+            document.getElementById('u_nama_usaha').innerText = data.nama_usaha;
+            document.getElementById('u_id').innerText = "ID: " + data.id_umkm;
+            document.getElementById('u_catatan').innerText = data.catatan_verifikasi || (data.status_sertifikasi === 'Ditolak/Revisi' ? 'Ada berkas yang perlu direvisi.' : 'Dalam peninjauan Admin.');
+
+            let persen = 20; let tahap = "Pendaftaran Baru";
+            if (data.status_dokumen === 'Lengkap') { persen = 40; tahap = "Verifikasi Dokumen Selesai"; }
+            if (data.status_pembayaran === 'Valid' && data.status_dokumen === 'Lengkap') { persen = 60; tahap = "Pembayaran Valid (Antre Audit)"; }
+            if (data.status_pembayaran === 'Valid' && data.status_dokumen === 'Lengkap' && (data.status_sertifikasi === 'Terverifikasi' || data.status_sertifikasi === 'Audit Lapangan')) { persen = 80; tahap = "Proses Audit Lapangan"; }
+            if (data.status_sertifikasi === 'Sertifikat Terbit' || data.file_sertifikat) { 
+                persen = 100; tahap = "Sertifikasi Selesai"; 
+                document.getElementById('sertifikatContainer').classList.remove('hidden');
+                document.getElementById('btnDownload').href = "/uploads/" + data.file_sertifikat;
+            } else {
+                document.getElementById('sertifikatContainer').classList.add('hidden');
+            }
+
+            document.getElementById('u_persen').innerText = persen + "%";
+            document.getElementById('u_bar').style.width = persen + "%";
+            document.getElementById('u_tahap').innerText = tahap;
+
+            const actionContainer = document.getElementById('actionContainer');
+            if (data.status_dokumen !== 'Lengkap') {
+                actionContainer.innerHTML = `<p class="mt-4 text-[10px] font-black tracking-widest text-amber-500 uppercase"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Menunggu Verifikasi Dokumen Admin</p>`;
+            } else if (!data.status_pembayaran || data.status_pembayaran === 'Tolak') {
+                actionContainer.innerHTML = `
+                    <button onclick="bukaModalBayar()" class="mt-4 px-6 py-3 bg-amber-500 text-white rounded-xl text-xs font-bold hover:bg-amber-600 transition-all uppercase tracking-widest shadow-lg shadow-amber-200">
+                        <i class="fa-solid fa-file-invoice-dollar mr-2"></i> Upload Bukti Pembayaran
+                    </button>
+                    ${data.status_pembayaran === 'Tolak' ? '<p class="text-[10px] text-rose-500 font-bold mt-2 uppercase">Bukti sebelumnya ditolak. Silakan upload ulang!</p>' : ''}
+                `;
+            } else if (data.status_pembayaran === 'Menunggu') {
+                actionContainer.innerHTML = `<p class="mt-4 text-[10px] font-black tracking-widest text-amber-500 uppercase"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Bukti bayar sedang divalidasi admin.</p>`;
+            } else {
+                actionContainer.innerHTML = `<p class="mt-4 text-[10px] font-black tracking-widest text-emerald-500 uppercase"><i class="fa-solid fa-check-circle mr-1"></i> Pembayaran Valid</p>`;
+            }
+        }
+
+        // --- FUNGSI DAFTAR UMKM ---
+        function bukaModalDaftar() { document.getElementById('modalDaftar').classList.remove('hidden'); }
+        function tutupModalDaftar() { document.getElementById('modalDaftar').classList.add('hidden'); }
+
+        async function fetchKategori() {
+            try {
+                const res = await fetch('/api/kategori');
+                const data = await res.json();
+                const selectKat = document.getElementById('kat');
+                data.forEach(item => selectKat.innerHTML += `<option value="${item.nama_kategori}">${item.nama_kategori}</option>`);
+            } catch (e) { console.error("Gagal load kategori"); }
+        }
+
+        document.getElementById('formDaftar').onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const resUmkm = await fetch('/api/umkm');
+                const dataUmkm = await resUmkm.json();
+                let highestId = 0;
+                dataUmkm.forEach(item => {
+                    const numMatch = String(item.id_umkm).match(/\d+/);
+                    if (numMatch) {
+                        const num = parseInt(numMatch[0], 10);
+                        if (num > highestId) highestId = num;
+                    }
+                });
+                const newId = "UMKM-" + String(highestId + 1).padStart(3, '0');
+
+                const formData = new FormData();
+                formData.append('id', newId);
+                formData.append('usaha', document.getElementById('usaha').value);
+                formData.append('nib', document.getElementById('nib').value);
+                formData.append('kategori', document.getElementById('kat').value);
+                formData.append('email', currentUserEmail);
+                formData.append('hp', document.getElementById('hp').value);
+                formData.append('alamat', document.getElementById('almt').value);
+                formData.append('file_nib', document.getElementById('file_nib').files[0]);
+
+                const res = await fetch('/api/simpan', { method: 'POST', body: formData });
+                const result = await res.json();
+                if(result.status === 'sukses') {
+                    alert("Pendaftaran Berhasil! Lanjutkan dengan mengupload bukti pembayaran.");
+                    currentIdUmkm = newId; // Fokuskan ke ID yg baru dibuat
+                    tutupModalDaftar();
+                    loadMyUMKM();
+                } else alert("Gagal: " + result.pesan);
+            } catch (err) { alert("Error Server!"); }
+        };
+
+        // --- FUNGSI UPLOAD PEMBAYARAN ---
+        function bukaModalBayar() { document.getElementById('modalBayar').classList.remove('hidden'); }
+        function tutupModalBayar() { document.getElementById('modalBayar').classList.add('hidden'); }
+
+        document.getElementById('formBayar').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('id_umkm', currentIdUmkm);
+            formData.append('jumlah', document.getElementById('jml_bayar').value);
+            formData.append('tgl', document.getElementById('tgl_bayar').value);
+            formData.append('bukti', document.getElementById('bukti_bayar').files[0]);
+
+            try {
+                const res = await fetch('/api/pembayaran/input', { method: 'POST', body: formData });
+                if((await res.json()).status === 'sukses') {
+                    alert("Bukti pembayaran berhasil diupload!");
+                    tutupModalBayar();
+                    loadMyUMKM();
+                }
+            } catch (err) { alert("Error Server!"); }
+        };
+
+        window.onload = loadMyUMKM;
+    </script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Sertifikasi - RuangHalal.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-[#E2F7E1] font-sans flex h-screen overflow-hidden text-gray-700">
+
+    <aside id="sidebar" class="w-64 bg-[#008D64] flex flex-col shadow-sm transition-all duration-300 ease-in-out" style="margin-left: -256px;">
+        <nav class="flex-1 px-4 py-8 space-y-1 text-sm font-medium">
+            <a href="/dashboard" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-house-chimney w-6"></i> Dashboard
+            </a>
+            <a href="/daftar-umkm" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-users w-6"></i> Daftar UMKM
+            </a>
+            <a href="/verifikasi-dokumen" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-clipboard-check w-6"></i> Verifikasi Dokumen
+            </a>
+            <a href="/validasi-pembayaran" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-invoice-dollar w-6"></i> Validasi Pembayaran
+            </a>
+            <a href="/upload-sertifikat" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-arrow-up w-6"></i> Upload Sertifikat
+            </a>
+            <a href="/status-sertifikasi" class="flex items-center p-3 text-[#008D64] bg-white rounded-lg font-bold shadow-sm">
+                <i class="fa-solid fa-certificate w-6 text-[#008D64]"></i> Status Sertifikasi
+            </a>
+            <a href="/laporan" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-lines w-6"></i> Laporan
+            </a>
+            
+        </nav>
+
+        <!-- Tombol Keluar di Bawah Sidebar -->
+        <div class="p-4 border-t border-white/10 mt-auto">
+            <a href="/api/logout" class="w-full flex items-center justify-center p-3 text-rose-500 bg-white rounded-lg font-bold shadow-sm hover:bg-rose-50 transition cursor-pointer text-sm">
+                <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Keluar
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header class="h-16 bg-[#008D64] shadow-sm flex items-center justify-between px-8 shrink-0 z-10 relative">
+            <div class="flex items-center gap-4">
+                <button id="btnToggle" class="text-white/80 hover:text-white focus:outline-none transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+            <div><h1 class="text-xl font-bold text-white tracking-tight">RUANGHALAL.ID</h1></div>
+        </header>
+
+        <div class="p-8 overflow-y-auto h-full">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800">Daftar Progres Sertifikasi</h2>
+                <p class="text-sm text-gray-400 italic">Pantau tahapan sertifikasi untuk semua unit usaha.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-[#008D64]/5 text-[10px] font-bold text-[#008D64] uppercase tracking-widest">
+                        <tr>
+                            <th class="px-8 py-4">Nama UMKM</th>
+                            <th class="px-8 py-4 text-center">Tahap Terakhir</th>
+                            <th class="px-8 py-4 w-1/4">Progres</th>
+                            <th class="px-8 py-4">Update Terakhir</th>
+                        </tr>
+                    </thead>
+                    <tbody id="progresTableBody" class="divide-y divide-gray-50">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalKelola" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 w-[400px] shadow-2xl">
+            <h3 class="text-xl font-bold mb-2 text-gray-800">Update Progres</h3>
+            <p id="namaUmkmKelola" class="text-xs text-blue-600 font-bold mb-6 uppercase tracking-widest"></p>
+            
+            <div id="statusAutoMessage" class="mb-6 p-4 bg-gray-50 rounded-xl text-xs text-gray-500 font-medium text-center border border-gray-100">
+                <!-- Pesan status otomatis -->
+            </div>
+
+            <div id="actionContainer" class="hidden flex-col gap-3">
+                <button onclick="simpanTahap(selectedID, 'Sertifikat Terbit')" class="w-full py-3 bg-[#008D64] text-white rounded-xl font-bold uppercase text-[10px] shadow-lg shadow-green-100 hover:bg-[#007A57] transition">Terbitkan Sertifikat</button>
+            </div>
+
+            <div class="mt-4">
+                <button onclick="toggleModalKelola()" class="w-full py-3 border border-gray-100 rounded-xl font-bold text-gray-400 uppercase text-[10px] hover:bg-gray-50 transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedID = '';
+
+        // 1. Ambil Data Progres dari Server
+        async function fetchProgres() {
+            try {
+                // Pake API progres yang udah kita buat di server.js tadi
+                const res = await fetch('http://localhost:5000/api/progres-sertifikasi');
+                const data = await res.json();
+                const tableBody = document.getElementById('progresTableBody');
+                tableBody.innerHTML = '';
+
+                data.forEach(item => {
+                    // Variasi warna dinamis berdasarkan tahapan
+                    let badgeClass = "bg-slate-50 text-slate-600 border border-slate-200";
+                    let barClass = "bg-slate-400";
+                    if (item.tahap === 'Pendaftaran Baru' || item.tahap === 'Pendaftaran') {
+                        badgeClass = "bg-amber-50 text-amber-700 border border-amber-200";
+                        barClass = "bg-amber-500";
+                    } else if (item.tahap === 'Verifikasi Dokumen') {
+                        badgeClass = "bg-sky-50 text-sky-700 border border-sky-200";
+                        barClass = "bg-sky-500";
+                    } else if (item.tahap === 'Verifikasi Bayar' || item.tahap === 'Pembayaran Valid') {
+                        badgeClass = "bg-cyan-50 text-cyan-700 border border-cyan-200";
+                        barClass = "bg-cyan-500";
+                    } else if (item.tahap === 'Audit Lapangan' || item.tahap === 'Audit Lapangan (Progres)') {
+                        badgeClass = "bg-violet-50 text-violet-700 border border-violet-200";
+                        barClass = "bg-violet-500";
+                    } else if (item.tahap === 'Selesai' || item.tahap === 'Sertifikat Terbit') {
+                        badgeClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
+                        barClass = "bg-emerald-500";
+                    } else if (item.tahap === 'Ditolak/Revisi') {
+                        badgeClass = "bg-rose-50 text-rose-700 border border-rose-200";
+                        barClass = "bg-rose-500";
+                    }
+
+                    tableBody.innerHTML += `
+                        <tr class="hover:bg-gray-50/50 transition">
+                            <td class="px-8 py-5">
+                                <p class="text-black font-bold">${item.nama_usaha}</p>
+                                <p class="text-xs text-gray-500 font-semibold mt-1">ID: ${item.id_umkm}</p>
+                            </td>
+                            <td class="px-8 py-5 text-center">
+                                <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm ${badgeClass}">
+                                    ${item.tahap}
+                                </span>
+                            </td>
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-3 min-w-[150px]">
+                                    <div class="flex-1 bg-gray-200 rounded-full h-2.5 shadow-inner overflow-hidden">
+                                        <div class="h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${barClass}" style="width: ${item.persen}%"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-700 font-black w-12 text-right">${item.persen}%</span>
+                                </div>
+                            </td>
+                            <td class="px-8 py-5 text-sm text-gray-700 font-semibold">
+                                ${new Date(item.updated_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'})}
+                            </td>
+                        </tr>`;
+                });
+            } catch (err) {
+                console.error("Gagal muat data progres:", err);
+            }
+        }
+
+        // 2. Fungsi Buka/Tutup Modal
+        function toggleModalKelola(id, nama, tahap) {
+            selectedID = id;
+            if(nama) document.getElementById('namaUmkmKelola').innerText = nama;
+            
+            const msgBox = document.getElementById('statusAutoMessage');
+            const actionBox = document.getElementById('actionContainer');
+            
+            if(msgBox && actionBox) {
+                msgBox.classList.remove('hidden');
+                actionBox.classList.add('hidden');
+
+                if (tahap === 'Pendaftaran') {
+                    msgBox.innerHTML = "Tahap saat ini: <b>Pendaftaran</b>.<br><br>Sistem mengunci status. Menunggu <b>Validasi Pembayaran</b> dari Admin.";
+                } else if (tahap === 'Pembayaran Valid') {
+                    msgBox.innerHTML = "Tahap saat ini: <b>Pembayaran Valid</b>.<br><br>Sistem mengunci status. Menunggu <b>Verifikasi Dokumen</b> diselesaikan.";
+                } else if (tahap === 'Verifikasi Dokumen') {
+                    msgBox.innerHTML = "Tahap saat ini: <b>Verifikasi Dokumen</b>.<br><br>Sistem sedang memproses dokumen.";
+                } else if (tahap === 'Audit Lapangan') {
+                    msgBox.innerHTML = "Tahap saat ini: <b class='text-amber-600'>Audit Lapangan</b>.<br><br>Jika audit selesai dan lulus, silakan klik tombol di bawah untuk menerbitkan sertifikat.";
+                    actionBox.classList.remove('hidden');
+                } else if (tahap === 'Selesai') {
+                    msgBox.innerHTML = "<i class='fa-solid fa-check-circle text-[#008D64] text-3xl mb-3'></i><br><b>Sertifikat sudah diterbitkan!</b><br>Seluruh alur sertifikasi telah selesai.";
+                } else {
+                    msgBox.innerHTML = "Status tidak diketahui atau sedang direvisi.";
+                }
+            }
+            document.getElementById('modalKelola').classList.toggle('hidden');
+        }
+
+        // 3. Simpan Perubahan Tahap ke SQL
+        async function simpanTahap(id, tahapBaru) {
+            const targetID = id || selectedID;
+            if (!targetID) return alert("ID UMKM tidak ditemukan.");
+            if (!confirm("Terbitkan sertifikat untuk UMKM ini?")) return;
+            try {
+                const res = await fetch('http://localhost:5000/api/sertifikasi/update-tahap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: targetID, tahap: tahapBaru })
+                });
+                
+                const hasil = await res.json();
+                if(hasil.status === 'sukses') {
+                    alert("MANTAP! Progres UMKM Berhasil Diperbarui.");
+                    document.getElementById('modalKelola').classList.add('hidden');
+                    fetchProgres(); // Refresh tabel biar barnya nambah panjang
+                } else {
+                    alert("Gagal update: " + hasil.pesan);
+                }
+            } catch (err) {
+                alert("Server bermasalah, cek terminal!");
+            }
+        }
+
+        window.onload = fetchProgres;
+    </script>
+<script>
+    // --- LOGIKA TOGGLE MENU ---
+    const btnToggle = document.getElementById('btnToggle');
+    const sidebar = document.getElementById('sidebar');
+    btnToggle.addEventListener('click', () => {
+        sidebar.style.marginLeft = sidebar.style.marginLeft === '-256px' ? '0px' : '-256px';
+    });
+</script>
+</body>
+</html>
+
+

@@ -1,0 +1,405 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Export Laporan - RuangHalal.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Agar saat ekspor ke PDF, hasilnya bersih & memenuhi kertas */
+        .printable-area { background: white !important; }
+        @media print { 
+            @page { size: landscape; margin: 10mm; }
+            body, html { background: white !important; height: auto !important; overflow: visible !important; }
+            .no-print { display: none !important; } 
+            .printable-area { box-shadow: none !important; border: none !important; padding: 0 !important; position: static !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
+            
+            /* Menghapus flex dan overflow agar tidak numpuk saat diprint / lebih dari 1 halaman */
+            main, .p-8, #reportSection, .overflow-y-auto, .overflow-x-auto, .h-full, .flex-1 {
+                display: block !important;
+                height: auto !important;
+                min-height: auto !important;
+                overflow: visible !important;
+                position: static !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { border-bottom: 1px solid #f3f4f6 !important; }
+            tr { page-break-inside: avoid; }
+            thead { display: table-header-group; }
+        }
+    </style>
+</head>
+<body class="bg-[#E2F7E1] font-sans flex h-screen overflow-hidden text-gray-700">
+
+    <aside id="sidebar" class="w-64 bg-[#008D64] flex flex-col shadow-sm no-print transition-all duration-300 ease-in-out" style="margin-left: -256px;">
+        <nav class="flex-1 px-4 py-8 space-y-1 text-sm font-medium">
+            <a href="/dashboard" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition"><i class="fa-solid fa-house-chimney w-6"></i> Dashboard</a>
+            <a href="/daftar-umkm" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition"><i class="fa-solid fa-users w-6"></i> Daftar UMKM</a>
+            <a href="/verifikasi-dokumen" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition"><i class="fa-solid fa-clipboard-check w-6"></i> Verifikasi Dokumen</a>
+            <a href="/validasi-pembayaran" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition"><i class="fa-solid fa-file-invoice-dollar w-6"></i> Validasi Pembayaran</a>
+            <a href="/upload-sertifikat" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition"><i class="fa-solid fa-file-arrow-up w-6"></i> Upload Sertifikat</a>
+            <a href="/status-sertifikasi" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition"><i class="fa-solid fa-certificate w-6"></i> Status Sertifikasi</a>
+            <a href="/laporan" class="flex items-center p-3 text-[#008D64] bg-white rounded-lg font-bold shadow-sm"><i class="fa-solid fa-file-lines w-6 text-[#008D64]"></i> Laporan</a>
+        </nav>
+
+        <!-- Tombol Keluar di Bawah Sidebar -->
+        <div class="p-4 border-t border-white/10 mt-auto">
+            <a href="/api/logout" class="w-full flex items-center justify-center p-3 text-rose-500 bg-white rounded-lg font-bold shadow-sm hover:bg-rose-50 transition cursor-pointer text-sm">
+                <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Keluar
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header class="h-16 bg-[#008D64] shadow-sm flex items-center justify-between px-8 shrink-0 no-print z-10 relative">
+            <div class="flex items-center gap-4">
+                <button id="btnToggle" class="text-white/80 hover:text-white focus:outline-none transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <h1 class="text-xl font-bold text-white tracking-tight">RUANGHALAL.ID</h1>
+            </div>
+        </header>
+
+        <div class="p-8 overflow-y-auto h-full bg-[#E2F7E1]">
+            
+            <!-- 1. Menu Dashboard & Pilihan Laporan -->
+            <div id="selectionSection" class="w-full">
+                
+                <div class="grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-3 md:grid-cols-2 gap-6 md:gap-8">
+                    <!-- Report Type 1 -->
+                    <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col group cursor-pointer h-full" onclick="pilihLaporan('pendaftaran')">
+                        <div class="w-14 h-14 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-users"></i></div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Rekapitulasi Pendaftaran</h3>
+                        <p class="text-sm text-gray-500 mb-6 flex-1">Menampilkan data UMKM yang mendaftar serta tahapan progres sertifikasinya.</p>
+                        <div class="bg-gray-50 p-4 rounded-xl text-xs font-medium text-gray-600 space-y-2 mb-6 min-h-[90px]">
+                            <p class="flex items-start"><i class="fa-solid fa-bullseye w-5 mt-0.5 text-gray-400"></i> <span><b>Tujuan:</b> Monitoring volume pendaftar & status berkas.</span></p>
+                            <p class="flex items-start"><i class="fa-solid fa-user-tie w-5 mt-0.5 text-gray-400"></i> <span><b>Kebutuhan:</b> Admin </span></p>
+                        </div>
+                        <button class="w-full py-3 bg-blue-50 text-blue-600 font-bold rounded-xl text-xs uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition mt-auto">Buat Laporan Ini</button>
+                    </div>
+
+                    <!-- Report Type 2 -->
+                    <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col group cursor-pointer h-full" onclick="pilihLaporan('keuangan')">
+                        <div class="w-14 h-14 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-wallet"></i></div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Penerimaan Keuangan</h3>
+                        <p class="text-sm text-gray-500 mb-6 flex-1">Rincian penerimaan biaya sertifikasi dari UMKM yang pembayarannya valid.</p>
+                        <div class="bg-gray-50 p-4 rounded-xl text-xs font-medium text-gray-600 space-y-2 mb-6 min-h-[90px]">
+                            <p class="flex items-start"><i class="fa-solid fa-bullseye w-5 mt-0.5 text-gray-400"></i> <span><b>Tujuan:</b> Pembukuan pendapatan biaya pendaftaran.</span></p>
+                            <p class="flex items-start"><i class="fa-solid fa-user-tie w-5 mt-0.5 text-gray-400"></i> <span><b>Kebutuhan:</b> Bendahara.</span></p>
+                        </div>
+                        <button class="w-full py-3 bg-amber-50 text-amber-600 font-bold rounded-xl text-xs uppercase tracking-widest group-hover:bg-amber-500 group-hover:text-white transition mt-auto">Buat Laporan Ini</button>
+                    </div>
+
+                    <!-- Report Type 3 -->
+                    <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col group cursor-pointer h-full" onclick="pilihLaporan('sertifikat')">
+                        <div class="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-award"></i></div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Daftar Sertifikat Terbit</h3>
+                        <p class="text-sm text-gray-500 mb-6 flex-1">Daftar unit usaha yang telah berhasil lulus audit dan mendapatkan sertifikat halal.</p>
+                        <div class="bg-gray-50 p-4 rounded-xl text-xs font-medium text-gray-600 space-y-2 mb-6 min-h-[90px]">
+                            <p class="flex items-start"><i class="fa-solid fa-bullseye w-5 mt-0.5 text-gray-400"></i> <span><b>Tujuan:</b> Publikasi & validasi data UMKM tersertifikasi.</span></p>
+                            <p class="flex items-start"><i class="fa-solid fa-user-tie w-5 mt-0.5 text-gray-400"></i> <span><b>Kebutuhan:</b> Auditor BPJPH.</span></p>
+                        </div>
+                        <button class="w-full py-3 bg-emerald-50 text-emerald-600 font-bold rounded-xl text-xs uppercase tracking-widest group-hover:bg-emerald-600 group-hover:text-white transition mt-auto">Buat Laporan Ini</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Area Detail & Cetak Laporan -->
+            <div id="reportSection" class="hidden flex flex-col h-full max-w-6xl mx-auto">
+                
+                <!-- Control Bar (Toolbar Terpadu) -->
+                <div class="bg-white p-3 md:p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col lg:flex-row justify-between items-center gap-4 mb-6 no-print shrink-0">
+                    
+                    <!-- Kiri: Kembali & Filter -->
+                    <div class="flex flex-wrap md:flex-nowrap items-center gap-3 w-full lg:w-auto">
+                        <button onclick="kembaliPilih()" class="h-11 px-4 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 hover:text-gray-900 transition flex items-center text-sm font-bold border border-gray-200">
+                            <i class="fa-solid fa-arrow-left md:mr-2"></i> <span class="hidden md:inline">Kembali</span>
+                        </button>
+                        
+                        <div class="h-8 w-px bg-gray-200 hidden md:block mx-1"></div>
+                        
+                        <div class="flex flex-1 items-center gap-2">
+                            <input type="date" id="startDate" class="h-11 w-full md:w-auto px-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 outline-none focus:ring-2 focus:ring-[#008D64]" title="Mulai Tanggal">
+                            <span class="text-gray-400 font-bold text-xs">s/d</span>
+                            <input type="date" id="endDate" class="h-11 w-full md:w-auto px-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 outline-none focus:ring-2 focus:ring-[#008D64]" title="Sampai Tanggal">
+                            
+                            <button onclick="loadData()" class="h-11 px-5 bg-gray-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-700 transition shadow-md shrink-0">
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Kanan: Action Buttons Export -->
+                    <div class="flex items-center gap-2 w-full lg:w-auto justify-end">
+                        <button onclick="exportExcel()" class="h-11 px-4 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-100 transition border border-emerald-100 flex items-center flex-1 md:flex-none justify-center">
+                            <i class="fa-solid fa-file-excel mr-1 text-sm"></i> Excel
+                        </button>
+                        <button onclick="exportPDF()" class="h-11 px-4 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-rose-100 transition border border-rose-100 flex items-center flex-1 md:flex-none justify-center">
+                            <i class="fa-solid fa-file-pdf mr-1 text-sm"></i> PDF
+                        </button>
+                        <button onclick="window.print()" class="h-11 px-6 bg-[#008D64] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#007A57] transition shadow-lg shadow-green-100 flex items-center flex-1 md:flex-none justify-center">
+                            <i class="fa-solid fa-print mr-2 text-sm"></i> Cetak
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kertas Laporan -->
+                <div class="printable-area p-8 md:p-12 rounded-3xl bg-white shadow-sm border border-gray-200 shrink-0 mx-auto w-full max-w-5xl">
+
+                    <!-- Kop Laporan -->
+                    <div class="text-center mb-10 pb-6 border-b-2 border-gray-300 mt-2">
+                        <h1 id="reportTitle" class="text-2xl font-black text-gray-900 uppercase tracking-wide">JUDUL LAPORAN</h1>
+                        <p class="text-xs mt-2 font-medium text-gray-600">Dicetak dari Sistem Informasi Manajemen RuangHalal.id</p>
+                        <p class="text-[10px] mt-1 font-bold text-gray-400 uppercase tracking-widest">Tanggal Cetak: <span id="tglLaporan" class="text-gray-600"></span></p>
+                        <p id="filterInfo" class="text-[10px] font-bold text-[#008D64] uppercase tracking-widest mt-2 hidden bg-emerald-50 inline-block px-3 py-1 rounded-full border border-emerald-100"></p>
+                    </div>
+
+                    <!-- Ringkasan Eksekutif (Akan di-generate oleh JS) -->
+                    <div id="reportSummary" class="mb-8 grid grid-cols-2 md:grid-cols-3 gap-4 hidden"></div>
+
+                    <!-- Isi Tabel -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead id="reportTableHead" class="text-[10px] font-black text-gray-800 uppercase tracking-widest border-y-2 border-gray-800 bg-white">
+                                <!-- JS Generated Headers -->
+                            </thead>
+                            <tbody id="reportTableBody" class="text-sm divide-y divide-gray-100 text-gray-700">
+                                <!-- JS Generated Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Tanda Tangan Pengesahan -->
+                    <div class="mt-16 flex justify-end pb-8">
+                        <div class="text-center w-48">
+                            <p class="text-[11px] text-gray-600 mb-16">Jakarta, <span id="tglTtd"></span><br>Mengetahui,</p>
+                            <p class="font-bold text-gray-800 underline text-sm">Admin RuangHalal.id</p>
+                            <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">NIP. 19900101 2026 1 001</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer Kertas -->
+                    <div class="mt-4 pt-6 border-t border-gray-100 flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                        <p>RuangHalal.id &copy; 2026</p>
+                        <p>Dokumen Elektronik Sah</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentReportType = '';
+
+        function pilihLaporan(type) {
+            currentReportType = type;
+            document.getElementById('selectionSection').classList.add('hidden');
+            document.getElementById('reportSection').classList.remove('hidden');
+            
+            let title = "";
+            if(type === 'pendaftaran') title = "Laporan Rekapitulasi Pendaftaran Sertifikasi";
+            else if(type === 'keuangan') title = "Laporan Penerimaan Keuangan";
+            else if(type === 'sertifikat') title = "Laporan Daftar Sertifikat Terbit";
+            
+            document.getElementById('reportTitle').innerText = title;
+            
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('filterInfo').classList.add('hidden');
+            document.getElementById('reportSummary').classList.add('hidden');
+
+            loadData();
+        }
+
+        function kembaliPilih() {
+            document.getElementById('selectionSection').classList.remove('hidden');
+            document.getElementById('reportSection').classList.add('hidden');
+        }
+
+        async function loadData() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            
+            let url = 'http://localhost:5000/api/laporan/list-lengkap';
+            if(start && end) url += `?start=${start}&end=${end}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                document.getElementById('tglLaporan').innerText = new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+                document.getElementById('tglTtd').innerText = new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+
+                if (start && end) {
+                    document.getElementById('filterInfo').innerText = `Periode: ${new Date(start).toLocaleDateString('id-ID')} s/d ${new Date(end).toLocaleDateString('id-ID')}`;
+                    document.getElementById('filterInfo').classList.remove('hidden');
+                }
+
+                const thead = document.getElementById('reportTableHead');
+                const tableBody = document.getElementById('reportTableBody');
+                const reportSummary = document.getElementById('reportSummary');
+                
+                thead.innerHTML = '';
+                tableBody.innerHTML = '';
+
+                if (currentReportType === 'pendaftaran') {
+                    thead.innerHTML = `<tr>
+                        <th class="px-6 py-4">ID</th>
+                        <th class="px-6 py-4">Nama Usaha</th>
+                        <th class="px-6 py-4">Kategori</th>
+                        <th class="px-6 py-4 text-center">Tgl Update Terakhir</th>
+                        <th class="px-6 py-4 text-center">Status Berkas</th>
+                        <th class="px-6 py-4 text-center">Status Sertifikasi</th>
+                    </tr>`;
+                    
+                    const totalUmkm = data.length;
+                    const lulus = data.filter(d => d.status_sertifikasi === 'Sertifikat Terbit' || d.status_sertifikasi === 'Selesai').length;
+                    const proses = totalUmkm - lulus;
+                    reportSummary.innerHTML = `
+                        <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100/50"><p class="text-[9px] text-blue-500 font-bold uppercase tracking-widest mb-1">Total Pendaftar</p><p class="text-xl font-black text-gray-800">${totalUmkm} <span class="text-xs font-bold text-gray-500">Unit Usaha</span></p></div>
+                        <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50"><p class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest mb-1">Sertifikat Terbit</p><p class="text-xl font-black text-gray-800">${lulus} <span class="text-xs font-bold text-gray-500">Unit Usaha</span></p></div>
+                        <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100/50"><p class="text-[9px] text-amber-600 font-bold uppercase tracking-widest mb-1">Proses Sertifikasi</p><p class="text-xl font-black text-gray-800">${proses} <span class="text-xs font-bold text-gray-500">Unit Usaha</span></p></div>
+                    `;
+                    reportSummary.classList.remove('hidden');
+
+                    data.forEach(item => {
+                        const tgl = item.updated_at ? new Date(item.updated_at).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
+                        
+                        let docClass = 'bg-gray-50 text-gray-500 border border-gray-200';
+                        if (item.status_dokumen === 'Lengkap') docClass = 'bg-emerald-50 text-emerald-600 border border-emerald-200';
+                        else if (item.status_dokumen === 'Revisi') docClass = 'bg-rose-50 text-rose-600 border border-rose-200';
+                        else if (item.status_dokumen === 'Menunggu') docClass = 'bg-amber-50 text-amber-600 border border-amber-200';
+
+                        let certClass = 'bg-gray-50 text-gray-500 border border-gray-200';
+                        if (item.status_sertifikasi === 'Sertifikat Terbit' || item.status_sertifikasi === 'Selesai') certClass = 'bg-emerald-50 text-emerald-600 border border-emerald-200';
+                        else if (item.status_sertifikasi === 'Audit Lapangan') certClass = 'bg-purple-50 text-purple-600 border border-purple-200';
+                        else if (item.status_sertifikasi === 'Terverifikasi') certClass = 'bg-blue-50 text-blue-600 border border-blue-200';
+                        else if (item.status_sertifikasi === 'Ditolak/Revisi') certClass = 'bg-rose-50 text-rose-600 border border-rose-200';
+                        else if (item.status_sertifikasi === 'Pendaftaran') certClass = 'bg-amber-50 text-amber-600 border border-amber-200';
+                        
+                        tableBody.innerHTML += `<tr>
+                            <td class="px-6 py-4 font-bold text-black">${item.id_umkm}</td>
+                            <td class="px-6 py-4 font-bold text-black">${item.nama_usaha}</td>
+                            <td class="px-6 py-4 text-xs">${item.kategori || '-'}</td>
+                            <td class="px-6 py-4 text-center text-xs">${tgl}</td>
+                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm ${docClass}">${item.status_dokumen || 'MENUNGGU'}</span></td>
+                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm ${certClass}">${item.status_sertifikasi || 'PROSES'}</span></td>
+                        </tr>`;
+                    });
+                } 
+                else if (currentReportType === 'keuangan') {
+                    const dataKeuangan = data.filter(d => d.status_pembayaran === 'Valid');
+                    let totalPendapatan = 0;
+
+                    thead.innerHTML = `<tr>
+                        <th class="px-6 py-4">ID</th>
+                        <th class="px-6 py-4">Nama Usaha</th>
+                        <th class="px-6 py-4 text-center">Tgl Bayar</th>
+                        <th class="px-6 py-4 text-center">Status Bayar</th>
+                        <th class="px-6 py-4 text-right">Nominal (Rp)</th>
+                    </tr>`;
+                    
+                    const totalTrx = dataKeuangan.length;
+                    const estimasi = dataKeuangan.reduce((sum, d) => sum + (Number(d.jumlah_bayar) || 0), 0);
+                    
+                    reportSummary.innerHTML = `
+                        <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100/50"><p class="text-[9px] text-amber-600 font-bold uppercase tracking-widest mb-1">Transaksi Valid</p><p class="text-xl font-black text-gray-800">${totalTrx} <span class="text-xs font-bold text-gray-500">Pembayaran</span></p></div>
+                        <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50 col-span-2"><p class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest mb-1">Total Penerimaan Keuangan</p><p class="text-xl font-black text-emerald-600">Rp ${estimasi.toLocaleString('id-ID')}</p></div>
+                    `;
+                    reportSummary.classList.remove('hidden');
+                    reportSummary.classList.replace('md:grid-cols-3', 'md:grid-cols-3'); // Make it span properly
+
+                    dataKeuangan.forEach(item => {
+                        const nominal = Number(item.jumlah_bayar) || 0;
+                        totalPendapatan += nominal;
+                        const tgl = item.tgl_bayar ? new Date(item.tgl_bayar).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
+                        tableBody.innerHTML += `<tr>
+                            <td class="px-6 py-4 font-bold text-black">${item.id_umkm}</td>
+                            <td class="px-6 py-4 font-bold text-black">${item.nama_usaha}</td>
+                            <td class="px-6 py-4 text-center text-xs">${tgl}</td>
+                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm rounded-full text-[9px] font-black uppercase tracking-wider">${item.status_pembayaran}</span></td>
+                            <td class="px-6 py-4 text-right font-bold text-black">Rp ${nominal.toLocaleString('id-ID')}</td>
+                        </tr>`;
+                    });
+
+                    tableBody.innerHTML += `<tr class="bg-gray-100/50">
+                        <td colspan="4" class="px-6 py-4 font-black text-right text-gray-800 uppercase tracking-widest text-[10px]">Total Pendapatan</td>
+                        <td class="px-6 py-4 font-black text-right text-[#008D64] text-sm">Rp ${totalPendapatan.toLocaleString('id-ID')}</td>
+                    </tr>`;
+                }
+                else if (currentReportType === 'sertifikat') {
+                    const dataSertif = data.filter(d => d.status_sertifikasi === 'Sertifikat Terbit' || d.status_sertifikasi === 'Selesai');
+                    
+                    thead.innerHTML = `<tr>
+                        <th class="px-6 py-4">ID</th>
+                        <th class="px-6 py-4">Nama Usaha</th>
+                        <th class="px-6 py-4">Kategori</th>
+                        <th class="px-6 py-4 text-center">Tgl Terbit Sertifikat</th>
+                        <th class="px-6 py-4 text-center">Status</th>
+                    </tr>`;
+                    
+                    const totalSertif = dataSertif.length;
+                    
+                    reportSummary.innerHTML = `
+                        <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50 col-span-3"><p class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest mb-1">Total Sertifikat Halal Diterbitkan</p><p class="text-2xl font-black text-gray-800">${totalSertif} <span class="text-sm font-bold text-gray-500">Sertifikat</span></p></div>
+                    `;
+                    reportSummary.classList.remove('hidden');
+                    reportSummary.classList.replace('md:grid-cols-3', 'md:grid-cols-1');
+
+                    dataSertif.forEach(item => {
+                        const tgl = item.updated_at ? new Date(item.updated_at).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
+                        tableBody.innerHTML += `<tr>
+                            <td class="px-6 py-4 font-bold text-black">${item.id_umkm}</td>
+                            <td class="px-6 py-4 font-bold text-black">${item.nama_usaha}</td>
+                            <td class="px-6 py-4 text-xs">${item.kategori || '-'}</td>
+                            <td class="px-6 py-4 text-center font-bold text-xs">${tgl}</td>
+                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm rounded-full text-[9px] font-black uppercase tracking-wider"><i class="fa-solid fa-check mr-1"></i> Halal</span></td>
+                        </tr>`;
+                    });
+
+                    if(dataSertif.length === 0) {
+                         tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400 italic">Belum ada sertifikat yang diterbitkan pada periode ini.</td></tr>`;
+                    }
+                }
+            } catch (e) { console.error("Error loading report data", e); }
+        }
+
+        function exportExcel() {
+            const table = document.querySelector("table");
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Laporan UMKM" });
+            XLSX.writeFile(wb, `Laporan_UMKM_${new Date().getTime()}.xlsx`);
+        }
+
+        function exportPDF() {
+            const element = document.querySelector(".printable-area");
+            const opt = {
+                margin: 0.5,
+                filename: `Laporan_Halal_${new Date().getTime()}.pdf`,
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+    </script>
+    <script src="script-auth.js"></script>
+    <script>
+        // --- LOGIKA TOGGLE MENU ---
+        const btnToggle = document.getElementById('btnToggle');
+        const sidebar = document.getElementById('sidebar');
+        btnToggle.addEventListener('click', () => {
+            sidebar.style.marginLeft = sidebar.style.marginLeft === '-256px' ? '0px' : '-256px';
+        });
+    </script>
+</body>
+</html>

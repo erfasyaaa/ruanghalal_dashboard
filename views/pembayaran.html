@@ -1,0 +1,227 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validasi Pembayaran - RuangHalal.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-[#E2F7E1] font-sans flex h-screen overflow-hidden text-gray-700">
+
+    <aside id="sidebar" class="w-64 bg-[#008D64] flex flex-col shadow-sm shrink-0 transition-all duration-300 ease-in-out" style="margin-left: -256px;">
+        <nav class="flex-1 px-4 py-8 space-y-1 text-sm font-medium">
+            <a href="/dashboard" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-house-chimney w-6"></i> Dashboard
+            </a>
+            <a href="/daftar-umkm" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-users w-6"></i> Daftar UMKM
+            </a>
+            <a href="/verifikasi-dokumen" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-clipboard-check w-6"></i> Verifikasi Dokumen
+            </a>
+            <a href="/validasi-pembayaran" class="flex items-center p-3 text-[#008D64] bg-white rounded-lg font-bold shadow-sm">
+                <i class="fa-solid fa-file-invoice-dollar w-6 text-[#008D64]"></i> Validasi Pembayaran
+            </a>
+            <a href="/upload-sertifikat" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-arrow-up w-6"></i> Upload Sertifikat
+            </a>
+            <a href="/status-sertifikasi" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-certificate w-6"></i> Status Sertifikasi
+            </a>
+            <a href="/laporan" class="flex items-center p-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition">
+                <i class="fa-solid fa-file-lines w-6"></i> Laporan
+            </a>
+            
+        </nav>
+
+        <!-- Tombol Keluar di Bawah Sidebar -->
+        <div class="p-4 border-t border-white/10 mt-auto">
+            <a href="/api/logout" class="w-full flex items-center justify-center p-3 text-rose-500 bg-white rounded-lg font-bold shadow-sm hover:bg-rose-50 transition cursor-pointer text-sm">
+                <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Keluar
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header class="h-16 bg-[#008D64] shadow-sm flex items-center justify-between px-8 shrink-0 z-10 relative">
+            <div class="flex items-center gap-4">
+                <button id="btnToggle" class="text-white/80 hover:text-white focus:outline-none transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+            <div><h1 class="text-xl font-bold text-white tracking-tight">RUANGHALAL.ID</h1></div>
+        </header>
+
+        <div class="p-8 overflow-y-auto">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Validasi Pembayaran UMKM</h2>
+                    <p class="text-sm text-gray-400 italic">Konfirmasi bukti transfer pendaftaran sertifikasi.</p>
+                </div>
+                <button onclick="toggleModalPay()" class="px-6 py-2 bg-[#008D64] text-white rounded-xl text-xs font-bold hover:bg-[#007A57] shadow-lg transition uppercase tracking-widest">
+                    <i class="fa-solid fa-plus mr-2"></i> Input Bukti Bayar
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-[#008D64]/5 text-[10px] font-bold text-[#008D64] uppercase tracking-widest">
+    <tr>
+        <th class="px-6 py-4">ID UMKM</th>
+        <th class="px-6 py-4">Nama Usaha</th>
+        <th class="px-6 py-4">Tgl Transfer</th>
+        <th class="px-6 py-4">Jumlah Bayar</th>
+        <th class="px-6 py-4 text-center">Bukti</th> <th class="px-6 py-4 text-center">Status</th>
+        <th class="px-6 py-4 text-right">Aksi</th>
+    </tr>
+</thead>
+                    <tbody id="payTableBody" class="text-sm divide-y divide-gray-50 font-medium text-gray-600">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalPay" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 w-[450px] shadow-2xl">
+            <h3 class="text-xl font-bold mb-6 text-gray-800">Input Bukti Transfer</h3>
+            <form id="formBayar" class="space-y-4">
+                <input type="text" id="id_u_pay" placeholder="ID UMKM (Contoh: UMKM-001)" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none" required>
+                <input type="number" id="nominal" placeholder="Jumlah Bayar (Contoh: 300000)" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none" required>
+                <input type="date" id="tgl_bayar" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none" required>
+                
+                <div class="p-4 border-2 border-dashed border-gray-200 rounded-2xl text-center bg-gray-50">
+                    <i class="fa-solid fa-image text-gray-300 text-2xl mb-2"></i>
+                    <p id="fileNameDisplay" class="text-[10px] text-gray-400">Pilih file bukti transfer (JPG/PNG)</p>
+                    <input type="file" id="bukti_file" class="hidden" accept="image/*" required>
+                    <button type="button" onclick="document.getElementById('bukti_file').click()" class="mt-2 text-[#008D64] text-[10px] font-bold uppercase hover:underline">Pilih File</button>
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="toggleModalPay()" class="flex-1 py-3 border border-gray-100 rounded-xl font-bold text-gray-400 uppercase text-[10px]">Batal</button>
+                    <button type="submit" class="flex-1 py-3 bg-[#008D64] text-white rounded-xl font-bold uppercase text-[10px]">Simpan Bukti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+  <script>
+    // 1. Tampilkan Nama File Pas Dipilih
+    document.getElementById('bukti_file').onchange = function() {
+        const fileName = this.files[0] ? this.files[0].name : "Pilih file bukti transfer (JPG/PNG)";
+        const display = document.getElementById('fileNameDisplay');
+        display.innerText = "Terpilih: " + fileName;
+        display.classList.add('text-[#008D64]', 'font-bold');
+    };
+
+    function toggleModalPay() {
+        document.getElementById('modalPay').classList.toggle('hidden');
+        if(document.getElementById('modalPay').classList.contains('hidden')){
+            document.getElementById('formBayar').reset();
+            document.getElementById('fileNameDisplay').innerText = "Pilih file bukti transfer (JPG/PNG)";
+            document.getElementById('fileNameDisplay').classList.remove('text-[#008D64]', 'font-bold');
+        }
+    }
+
+    // 2. AMBIL DATA & TAMPILIN (BAGIAN YANG DIPERBAIKI)
+    async function fetchPembayaran() {
+        try {
+            const res = await fetch('http://localhost:5000/api/pembayaran');
+            const data = await res.json();
+            const tableBody = document.getElementById('payTableBody');
+            tableBody.innerHTML = '';
+
+            data.forEach(item => {
+                const statusClass = item.status_pembayaran === 'Valid' ? 'bg-emerald-50 text-emerald-600' : 
+                                   item.status_pembayaran === 'Tolak' ? 'bg-rose-50 text-rose-600' : 
+                                   'bg-amber-50 text-amber-600';
+
+                // Bikin link gambar ke folder uploads
+                const urlGambar = `http://localhost:5000/uploads/${item.bukti_transfer}`;
+
+                tableBody.innerHTML += `
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="px-6 py-5 text-blue-600 font-bold">#${item.id_umkm}</td>
+                            <td class="px-6 py-5 text-black font-bold">${item.nama_usaha}</td>
+                            <td class="px-6 py-5 text-[10px] text-black italic">${new Date(item.tgl_bayar).toLocaleDateString('id-ID')}</td>
+                            <td class="px-6 py-5 font-bold text-black">Rp ${Number(item.jumlah_bayar).toLocaleString()}</td>
+                        
+                        <td class="px-6 py-5 text-center">
+                            <button onclick="window.open('${urlGambar}', '_blank')" class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold hover:bg-blue-100 transition shadow-sm border border-blue-100">
+                                <i class="fa-solid fa-image mr-1"></i> LIHAT FOTO
+                            </button>
+                        </td>
+
+                        <td class="px-6 py-5 text-center">
+                            <span class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase ${statusClass}">${item.status_pembayaran}</span>
+                        </td>
+                        <td class="px-6 py-5 text-right space-x-2">
+                            ${item.status_pembayaran === 'Menunggu' ? `
+                                <button onclick="updateStatus(${item.id_pembayaran}, 'Valid')" class="text-emerald-500 hover:text-emerald-700"><i class="fa-solid fa-circle-check fa-lg"></i></button>
+                                <button onclick="updateStatus(${item.id_pembayaran}, 'Tolak')" class="text-rose-400 hover:text-rose-600"><i class="fa-solid fa-circle-xmark fa-lg"></i></button>
+                            ` : '<span class="text-[10px] text-gray-300 italic font-bold">TERVALIDASI</span>'}
+                        </td>
+                    </tr>`;
+            });
+        } catch (err) {
+            console.error("Gagal ambil data:", err);
+        }
+    }
+
+    async function updateStatus(id, status) {
+        if(confirm(`Setujui pembayaran ini sebagai ${status}?`)) {
+            await fetch('http://localhost:5000/api/pembayaran/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status })
+            });
+            fetchPembayaran();
+        }
+    }
+
+    document.getElementById('formBayar').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('id_umkm', document.getElementById('id_u_pay').value);
+        formData.append('jumlah', document.getElementById('nominal').value);
+        formData.append('tgl', document.getElementById('tgl_bayar').value);
+        
+        const fileInput = document.getElementById('bukti_file');
+        if(fileInput.files.length > 0) {
+            formData.append('bukti', fileInput.files[0]);
+        } else {
+            alert("Harap pilih gambar bukti transfer!");
+            return;
+        }
+
+        try {
+            const res = await fetch('http://localhost:5000/api/pembayaran/input', {
+                method: 'POST',
+                body: formData 
+            });
+            const hasil = await res.json();
+            if (hasil.status === 'sukses') {
+                alert("BUKTI BAYAR & GAMBAR BERHASIL DISIMPAN!");
+                toggleModalPay();
+                fetchPembayaran();
+            } else {
+                alert("GAGAL: " + hasil.pesan);
+            }
+        } catch (err) {
+            alert("Server bermasalah, cek terminal!");
+        }
+    };
+
+    window.onload = fetchPembayaran;
+</script>
+<script>
+    // --- LOGIKA TOGGLE MENU ---
+    const btnToggle = document.getElementById('btnToggle');
+    const sidebar = document.getElementById('sidebar');
+    btnToggle.addEventListener('click', () => {
+        sidebar.style.marginLeft = sidebar.style.marginLeft === '-256px' ? '0px' : '-256px';
+    });
+</script>
+</body>
+</html>

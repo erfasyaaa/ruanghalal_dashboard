@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Akun UMKM - RuangHalal.id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-[#E2F7E1] font-sans h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-black text-[#008D64] tracking-tight mb-2">RUANGHALAL.ID</h1>
+            <p class="text-sm text-gray-500 font-medium">Buat akun portal UMKM Anda</p>
+        </div>
+
+        <form onsubmit="prosesRegister(event)" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nama Lengkap Pemilik</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-user text-gray-400"></i>
+                    </div>
+                    <input type="text" id="nama" required class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#008D64] focus:border-transparent outline-none transition-all" placeholder="Masukkan nama lengkap Anda">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email Aktif</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-envelope text-gray-400"></i>
+                    </div>
+                    <input type="email" id="email" required class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#008D64] focus:border-transparent outline-none transition-all" placeholder="contoh: warung@email.com">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Buat Password</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password" id="password" required class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#008D64] focus:border-transparent outline-none transition-all" placeholder="Minimal 6 karakter">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Daftar Sebagai</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-user-tag text-gray-400"></i>
+                    </div>
+                    <select id="role" required class="w-full pl-11 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 focus:ring-2 focus:ring-[#008D64] focus:border-transparent outline-none transition-all appearance-none">
+                        <option value="" disabled selected>Pilih Role Anda</option>
+                        <option value="UMKM">UMKM</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-[#008D64] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-green-100 hover:bg-[#007A57] transition-all flex justify-center items-center mt-2">
+                <i class="fa-solid fa-user-plus mr-2"></i> Daftar Sekarang
+            </button>
+        </form>
+
+        <div class="mt-8 text-center text-sm text-gray-500">
+            Sudah punya akun? <a href="/" class="text-[#008D64] font-bold hover:underline">Masuk di sini</a>
+        </div>
+    </div>
+
+    <!-- Modal Alert Modern -->
+    <div id="alertModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center transform scale-95 transition-transform">
+            <div id="alertIcon" class="mx-auto w-12 h-12 rounded-full mb-4 flex items-center justify-center text-2xl">
+            </div>
+            <h3 id="alertTitle" class="text-lg font-bold text-gray-800 mb-2">Pemberitahuan</h3>
+            <p id="alertMessage" class="text-sm text-gray-500 mb-6">Pesan ini muncul di sini.</p>
+            <button id="alertBtn" onclick="tutupAlert()" class="w-full py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-200 transition-colors">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        let isSukses = false;
+
+        async function prosesRegister(e) {
+            e.preventDefault();
+            const nama = document.getElementById('nama').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nama, email, password, role })
+                });
+                
+                const data = await res.json();
+
+                if (data.status === 'sukses') {
+                    isSukses = true;
+                    document.getElementById('alertIcon').className = 'mx-auto w-12 h-12 rounded-full mb-4 flex items-center justify-center text-2xl bg-emerald-100 text-emerald-500';
+                    document.getElementById('alertIcon').innerHTML = '<i class="fa-solid fa-check"></i>';
+                    document.getElementById('alertBtn').innerText = 'Lanjut Login';
+                    document.getElementById('alertTitle').innerText = 'Berhasil';
+                } else {
+                    isSukses = false;
+                    document.getElementById('alertIcon').className = 'mx-auto w-12 h-12 rounded-full mb-4 flex items-center justify-center text-2xl bg-rose-100 text-rose-500';
+                    document.getElementById('alertIcon').innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                    document.getElementById('alertBtn').innerText = 'Tutup';
+                    document.getElementById('alertTitle').innerText = 'Gagal';
+                }
+                document.getElementById('alertMessage').innerText = data.pesan;
+                document.getElementById('alertModal').classList.remove('hidden');
+            } catch (error) { console.error("Gagal register:", error); }
+        }
+
+        function tutupAlert() {
+            document.getElementById('alertModal').classList.add('hidden');
+            if (isSukses) window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
